@@ -1,0 +1,31 @@
+{% import "_includes/forms" as forms %}
+
+{{ forms.autosuggestField({
+    label: "Cloud Name"|t('cloudinary'),
+    id: 'cloudName',
+    name: 'cloudName',
+    suggestEnvVars: true,
+    value: fs.cloudName,
+    errors: fs.getErrors('cloudName'),
+    required: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Api Key"|t('cloudinary'),
+    id: 'apiKey',
+    name: 'apiKey',
+    suggestEnvVars: true,
+    value: fs.apiKey,
+    errors: fs.getErrors('apiKey'),
+    required: true,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Api Secret"|t('cloudinary'),
+    id: 'apiSecret',
+    name: 'apiSecret',
+    suggestEnvVars: true,
+    value: fs.apiSecret,
+    errors: fs.getErrors('apiSecret'),
+    required: true,
+}) }}

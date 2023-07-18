@@ -1,0 +1,49 @@
+{
+    "name": "thomasvantuycom/craft-cloudinary",
+    "description": "Cloudinary integration for Craft CMS.",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "support": {
+        "email": "thomasvantuycom@protonmail.com",
+        "issues": "https://github.com/thomasvantuycom/craft-cloudinary/issues?state=open",
+        "source": "https://github.com/thomasvantuycom/craft-cloudinary",
+        "docs": "https://github.com/thomasvantuycom/craft-cloudinary",
+        "rss": "https://github.com/thomasvantuycom/craft-cloudinary/releases.atom"
+    },
+    "require": {
+        "php": ">=8.0.2",
+        "cloudinary/cloudinary_php": "^2.11",
+        "craftcms/cms": "^4.4.0"
+    },
+    "require-dev": {
+        "craftcms/ecs": "dev-main",
+        "craftcms/phpstan": "dev-main"
+    },
+    "autoload": {
+        "psr-4": {
+            "thomasvantuycom\\craftcloudinary\\": "src/"
+        }
+    },
+    "extra": {
+        "handle": "cloudinary",
+        "name": "Cloudinary",
+        "developer": "Thomas Vantuycom",
+        "documentationUrl": "https://github.com/thomasvantuycom/craft-cloudinary"
+    },
+    "scripts": {
+        "check-cs": "ecs check --ansi",
+        "fix-cs": "ecs check --ansi --fix",
+        "phpstan": "phpstan --memory-limit=1G"
+    },
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.0.2"
+        },
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
+    }
+}
