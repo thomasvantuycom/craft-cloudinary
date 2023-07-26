@@ -5,6 +5,7 @@ namespace thomasvantuycom\craftcloudinary\imagetransforms;
 use Cloudinary\Cloudinary;
 use Cloudinary\Transformation\Gravity;
 use Cloudinary\Transformation\Resize;
+use Craft;
 use craft\base\Component;
 use craft\base\imagetransforms\ImageTransformerInterface;
 use craft\elements\Asset;
@@ -73,9 +74,9 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
     {
         $config = [
             'cloud' => [
-                'cloud_name' => $cloudName,
-                'api_key' => $apiKey,
-                'api_secret' => $apiSecret,
+                'cloud_name' => Craft::parseEnv($cloudName),
+                'api_key' => Craft::parseEnv($apiKey),
+                'api_secret' => Craft::parseEnv($apiSecret),
             ],
         ];
 
