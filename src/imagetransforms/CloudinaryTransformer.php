@@ -10,6 +10,7 @@ use craft\base\Component;
 use craft\base\imagetransforms\ImageTransformerInterface;
 use craft\elements\Asset;
 use craft\models\ImageTransform;
+use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
 
 class CloudinaryTransformer extends Component implements ImageTransformerInterface
 {
@@ -35,9 +36,17 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
     public function getTransformUrl(Asset $asset, ImageTransform $imageTransform, bool $immediately): string
     {
         $fs = $asset->getVolume()->getFs();
-        $client = $this->client($fs->cloudName, $fs->apiKey, $fs->apiSecret);
+        $transformFs = $asset->getVolume()->getTransformFs();
 
-        $transform = $client->image($asset->getPath());
+        $isCloudinaryFs = $fs instanceof CloudinaryFs;
+
+        $client = $this->client($transformFs->cloudName, $transformFs->apiKey, $transformFs->apiSecret);
+
+        $transform = $client->image($isCloudinaryFs ? $asset->getPath() : $asset->getUrl());
+
+        if (!$isCloudinaryFs) {
+            $transform->deliveryType("fetch");
+        }
 
         $mode = $this->MODE_MAP[$imageTransform->mode];
         $width = $imageTransform->width;

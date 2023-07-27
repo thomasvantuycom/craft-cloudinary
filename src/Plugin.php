@@ -37,7 +37,7 @@ class Plugin extends BasePlugin
         });
 
         Event::on(Asset::class, Asset::EVENT_BEFORE_GENERATE_TRANSFORM, function(GenerateTransformEvent $event) {
-            if ($event->asset->getVolume()->getFs() instanceof CloudinaryFs) {
+            if ($event->asset->getVolume()->getTransformFs() instanceof CloudinaryFs) {
                 $event->transform->setTransformer(CloudinaryTransformer::class);
             }
         });
