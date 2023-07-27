@@ -1,6 +1,6 @@
 # Cloudinary for Craft CMS
 
-This plugin provides a [Cloudinary](https://cloudinary.com/) integration for [Craft CMS](https://craftcms.com/).
+This plugin integrates [Cloudinary](https://cloudinary.com/) with [Craft CMS](https://craftcms.com/). Assets can be uploaded from Craft's control panel and then transformed and delivered by Cloudinary, even if stored in a different filesystem. The plugin is compatible with your existing Craft template code and named image transforms.
 
 ## Requirements
 
@@ -31,6 +31,10 @@ composer require thomasvantuycom/craft-cloudinary
 
 ## Setup
 
-To create a new Cloudinary filesystem to use with your volumes, visit **Settings** → **Filesystems**, and press **New filesystem**. Select “Cloudinary” for the **Filesystem Type** setting and configure as needed.
+The plugin adds a Cloudinary filesystem type to Craft. It can be used solely as a transform filesystem or as a storage filesystem as well. 
 
-The plugin is compatible with your existing Craft template code and named transforms.
+To create a new Cloudinary filesystem to use with your volumes, visit **Settings** → **Filesystems**, and press **New filesystem**. Select “Cloudinary” for the **Filesystem Type** setting and configure as needed. If you'd like to store assets in Cloudinary and deliver them without any transformations, make sure to toggle **Files in this filesystem have public URLs** and to set the **Base URL** to “https://res.cloudinary.com/demo/image/upload/”, replacing “demo” with your own Cloudinary cloud name.
+
+To start using the filesystem, visit **Settings** → **Assets** → **Volumes**. Here you can create a new volume using the Cloudinary filesystem for both storage and transforms, or add the Cloudinary filesystem to any existing volumes for transforms only. In the latter case, any assets with public URLs from any local or remote filesystem are transformed by Cloudinary using the [fetch feature](https://cloudinary.com/documentation/fetch_remote_images#fetch_and_deliver_remote_files). This may not work in local development setups.
+
+The image transform options are restricted to [Craft's native transform options](https://craftcms.com/docs/4.x/image-transforms.html) and can be found under **Settings** → **Assets** → **Image Transforms**.
