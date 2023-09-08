@@ -5,10 +5,13 @@ namespace thomasvantuycom\craftcloudinary;
 use Craft;
 use craft\base\Plugin as BasePlugin;
 use craft\elements\Asset;
+use craft\events\DefineBehaviorsEvent;
 use craft\events\GenerateTransformEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\models\ImageTransform;
 use craft\services\Fs;
 use craft\services\ImageTransforms;
+use thomasvantuycom\craftcloudinary\behaviors\CloudinaryBehavior;
 use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
 use thomasvantuycom\craftcloudinary\imagetransforms\CloudinaryTransformer;
 use yii\base\Event;
@@ -40,6 +43,10 @@ class Plugin extends BasePlugin
             if ($event->asset->getVolume()->getTransformFs() instanceof CloudinaryFs) {
                 $event->transform->setTransformer(CloudinaryTransformer::class);
             }
+        });
+
+        Event::on(ImageTransform::class, ImageTransform::EVENT_DEFINE_BEHAVIORS, function(DefineBehaviorsEvent $event) {
+            $event->behaviors['cloudinary'] = CloudinaryBehavior::class;
         });
     }
 }

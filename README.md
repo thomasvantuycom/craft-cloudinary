@@ -37,4 +37,20 @@ To create a new Cloudinary filesystem to use with your volumes, visit **Settings
 
 To start using the filesystem, visit **Settings** → **Assets** → **Volumes**. Here you can create a new volume using the Cloudinary filesystem for both storage and transforms, or add the Cloudinary filesystem to any existing volumes for transforms only. In the latter case, any assets with public URLs from any local or remote filesystem are transformed by Cloudinary using the [fetch feature](https://cloudinary.com/documentation/fetch_remote_images#fetch_and_deliver_remote_files). This may not work in local development setups.
 
-The image transform options are restricted to [Craft's native transform options](https://craftcms.com/docs/4.x/image-transforms.html) and can be found under **Settings** → **Assets** → **Image Transforms**.
+## Image Transformations
+
+The plugin supports all of [Craft's native transform options](https://craftcms.com/docs/4.x/image-transforms.html). These can be found under **Settings** → **Assets** → **Image Transforms**.
+
+In addition, you can incorporate any of [Cloudinary's transformation options](https://cloudinary.com/documentation/transformation_reference#overview) in the transforms you define in your templates, like so:
+```twig
+{% set thumb = {
+  width: 100,
+  height: 100,
+  quality: 75,
+  opacity: 33,
+  border: '5px_solid_rgb:999',
+} %}
+
+<img src="{{ asset.getUrl(thumb) }}">
+```
+Transformation options should be in camelCase, meaning `aspect_ratio` becomes `aspectRatio`, or `fetch_format` becomes `fetchFornat`.
