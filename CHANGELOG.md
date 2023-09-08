@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.2.0 - 2023-09-08
+
+### Added
+
+- Support all Cloudinary image transformations
+
 ## 1.1.0 - 2023-07-27
 
 ### Added
