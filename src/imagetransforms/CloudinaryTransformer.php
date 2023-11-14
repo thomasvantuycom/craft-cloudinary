@@ -58,7 +58,7 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
         if ($qualifiers['crop'] === null) {
             switch ($imageTransform->mode) {
                 case 'crop':
-                    $mode = 'crop';
+                    $mode = 'fill';
                     break;
                 case 'fit':
                     $mode = $imageTransform->upscale ? 'fit' : 'limit';
