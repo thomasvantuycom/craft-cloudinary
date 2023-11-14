@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.2.1 - 2023-11-14
+
+### Fixed
+
+- Correct crop behaviour ([#2](https://github.com/thomasvantuycom/craft-cloudinary/issues/2))
+
 ## 1.2.0 - 2023-09-08
 
 ### Added
