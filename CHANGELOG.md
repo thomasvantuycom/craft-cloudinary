@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.3.0 - 2023-11-19
+
+### Added
+
+- Support dynamic folders mode ([#3](https://github.com/thomasvantuycom/craft-cloudinary/issues/3))
+
 ## 1.2.1 - 2023-11-14
 
 ### Fixed
