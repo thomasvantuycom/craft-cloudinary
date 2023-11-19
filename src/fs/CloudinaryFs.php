@@ -18,6 +18,8 @@ class CloudinaryFs extends Fs
 
     public string $apiSecret = '';
 
+    public bool $dynamicFolders = false;
+
     public static function displayName(): string
     {
         return Craft::t('cloudinary', 'Cloudinary');
@@ -59,10 +61,14 @@ class CloudinaryFs extends Fs
                 $assets = array_merge($assets, $response['resources']);
             } while (isset($response['next_cursor']));
 
+            $assets = array_filter($assets, function($asset) {
+                return $asset['bytes'] > 0;
+            });
+
             foreach ($assets as $asset) {
                 yield new FsListing([
                     'basename' => basename($asset['public_id']) . '.' . $asset['format'],
-                    'dirname' => $asset['folder'],
+                    'dirname' => $asset['asset_folder'] ?? $asset['folder'],
                     'type' => 'file',
                     'fileSize' => $asset['bytes'],
                     'dateModified' => (int) strtotime(isset($asset['last_updated']) ? $asset['last_updated']['updated_at'] : $asset['created_at']),
@@ -113,10 +119,16 @@ class CloudinaryFs extends Fs
     {
         try {
             $client = $this->client();
-            $publicId = $this->pathToPublicId($path);
-            $client->uploadApi()->upload($contents, [
-                'public_id' => $publicId,
-            ]);
+
+            $uploadOptions = [
+                'public_id' => $this->pathToPublicId($path),
+            ];
+
+            if ($this->dynamicFolders) {
+                $uploadOptions['asset_folder'] = $this->pathToFolder($path);
+            }
+
+            $client->uploadApi()->upload($contents, $uploadOptions);
         } catch (Exception $e) {
             throw new FsException($e->getMessage(), $e->getCode(), $e);
         }
@@ -126,10 +138,16 @@ class CloudinaryFs extends Fs
     {
         try {
             $client = $this->client();
-            $publicId = $this->pathToPublicId($path);
-            $client->uploadApi()->upload($stream, [
-                'public_id' => $publicId,
-            ]);
+
+            $uploadOptions = [
+                'public_id' => $this->pathToPublicId($path),
+            ];
+
+            if ($this->dynamicFolders) {
+                $uploadOptions['asset_folder'] = $this->pathToFolder($path);
+            }
+
+            $client->uploadApi()->upload($stream, $uploadOptions);
         } catch (Exception $e) {
             throw new FsException($e->getMessage(), $e->getCode(), $e);
         }
@@ -140,8 +158,11 @@ class CloudinaryFs extends Fs
         try {
             $client = $this->client();
             $publicId = $this->pathToPublicId($path);
-            $client->adminApi()->asset($publicId);
-            return true;
+            $response = $client->adminApi()->asset($publicId);
+            if ($response['bytes'] > 0) {
+                return true;
+            }
+            return false;
         } catch (Exception $e) {
             return false;
         }
@@ -179,10 +200,16 @@ class CloudinaryFs extends Fs
         try {
             $client = $this->client();
             $url = $this->pathToUrl($path);
-            $publicId = $this->pathToPublicId($newPath);
-            $client->uploadApi()->upload($url, [
-                'public_id' => $publicId,
-            ]);
+
+            $uploadOptions = [
+                'public_id' => $this->pathToPublicId($newPath),
+            ];
+
+            if ($this->dynamicFolders) {
+                $uploadOptions['asset_folder'] = $this->pathToFolder($path);
+            }
+
+            $client->uploadApi()->upload($url, $uploadOptions);
         } catch (Exception $e) {
             throw new FsException($e->getMessage(), $e->getCode(), $e);
         }
@@ -249,12 +276,29 @@ class CloudinaryFs extends Fs
 
     protected function pathToPublicId(string $path): string
     {
+        if ($this->dynamicFolders) {
+            $path = basename($path);
+        }
         return preg_replace('/\.[^.]+$/', '', $path);
     }
 
     protected function pathToUrl(string $path): string
     {
+        if ($this->dynamicFolders) {
+            $path = basename($path);
+        }
         $client = $this->client();
         return $client->image($path)->toUrl();
+    }
+
+    protected function pathToFolder(string $path): string
+    {
+        $folder = dirname($path);
+
+        if ($folder === '.') {
+            return '';
+        }
+
+        return $folder;
     }
 }

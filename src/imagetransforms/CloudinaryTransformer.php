@@ -19,10 +19,16 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
         $transformFs = $asset->getVolume()->getTransformFs();
         
         $isCloudinaryFs = $fs instanceof CloudinaryFs;
+        $hasDynamicFolders = $isCloudinaryFs && $fs->dynamicFolders;
+
+        $publicId = $asset->getUrl();
+        if ($isCloudinaryFs) {
+            $publicId = $hasDynamicFolders ? basename($asset->getPath()) : $asset->getPath();
+        }
         
         /** @var CloudinaryFs $transformFs */
         $client = $this->client($transformFs->cloudName, $transformFs->apiKey, $transformFs->apiSecret);
-        $transform = $client->image($isCloudinaryFs ? $asset->getPath() : $asset->getUrl());
+        $transform = $client->image($publicId);
 
         $qualifiers = [
             'angle' => $imageTransform->angle,
