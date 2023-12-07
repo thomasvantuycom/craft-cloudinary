@@ -27,7 +27,7 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
         }
         
         /** @var CloudinaryFs $transformFs */
-        $client = $this->client($transformFs->cloudName, $transformFs->apiKey, $transformFs->apiSecret);
+        $client = $this->client($transformFs->cloudName, $transformFs->apiKey, $transformFs->apiSecret, $transformFs->url);
         $transform = $client->image($publicId);
 
         $qualifiers = [
@@ -150,7 +150,7 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
         // ...
     }
 
-    protected function client($cloudName, $apiKey, $apiSecret): Cloudinary
+    protected function client($cloudName, $apiKey, $apiSecret, $url): Cloudinary
     {
         $config = [
             'cloud' => [
@@ -159,6 +159,15 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
                 'api_secret' => Craft::parseEnv($apiSecret),
             ],
         ];
+
+        if ($url) {
+            $hostname = parse_url(Craft::parseEnv($url), PHP_URL_HOST);
+
+            if ($hostname !== 'res.cloudinary.com') {
+                $config['private_cdn'] = TRUE;
+                $config['secure_distribution'] = $hostname;
+            }
+        }
 
         return new Cloudinary($config);
     }
