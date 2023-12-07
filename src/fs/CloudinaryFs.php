@@ -18,6 +18,8 @@ class CloudinaryFs extends Fs
 
     public string $apiSecret = '';
 
+    public string $baseFolder = '';
+
     public bool $dynamicFolders = false;
 
     public static function displayName(): string
@@ -128,6 +130,10 @@ class CloudinaryFs extends Fs
                 $uploadOptions['asset_folder'] = $this->pathToFolder($path);
             }
 
+            if(!empty($this->baseFolder)) {
+                $uploadOptions['folder'] = Craft::parseEnv($this->baseFolder);
+            }
+
             $client->uploadApi()->upload($contents, $uploadOptions);
         } catch (Exception $e) {
             throw new FsException($e->getMessage(), $e->getCode(), $e);
@@ -145,6 +151,10 @@ class CloudinaryFs extends Fs
 
             if ($this->dynamicFolders) {
                 $uploadOptions['asset_folder'] = $this->pathToFolder($path);
+            }
+
+            if(!empty($this->baseFolder)) {
+                $uploadOptions['folder'] = Craft::parseEnv($this->baseFolder);
             }
 
             $client->uploadApi()->upload($stream, $uploadOptions);
@@ -207,6 +217,10 @@ class CloudinaryFs extends Fs
 
             if ($this->dynamicFolders) {
                 $uploadOptions['asset_folder'] = $this->pathToFolder($path);
+            }
+
+            if(!empty($this->baseFolder)) {
+                $uploadOptions['folder'] = Craft::parseEnv($this->baseFolder);
             }
 
             $client->uploadApi()->upload($url, $uploadOptions);

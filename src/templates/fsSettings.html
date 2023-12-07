@@ -1,6 +1,16 @@
 {% import "_includes/forms" as forms %}
 
 {{ forms.autosuggestField({
+label: "Base Folder"|t('cloudinary'),
+id: 'baseFolder',
+name: 'baseFolder',
+suggestEnvVars: true,
+value: fs.baseFolder,
+errors: fs.getErrors('baseFolder'),
+required: false,
+}) }}
+
+{{ forms.autosuggestField({
     label: "Cloud Name"|t('cloudinary'),
     id: 'cloudName',
     name: 'cloudName',
