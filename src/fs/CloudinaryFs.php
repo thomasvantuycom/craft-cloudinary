@@ -182,7 +182,7 @@ class CloudinaryFs extends Fs
     {
         try {
             $client = $this->client();
-            $publicId = $this->pathToPublicId($path);
+            $publicId = $this->appendBaseFolderToPath($this->pathToPublicId($path));
             $client->uploadApi()->destroy($publicId, [
                 'invalidate' => true,
             ]);
@@ -195,8 +195,8 @@ class CloudinaryFs extends Fs
     {
         try {
             $client = $this->client();
-            $publicId = $this->pathToPublicId($path);
-            $newPublicId = $this->pathToPublicId($newPath);
+            $publicId = $this->appendBaseFolderToPath($this->pathToPublicId($path));
+            $newPublicId = $this->appendBaseFolderToPath($this->pathToPublicId($newPath));
             $client->uploadApi()->rename($publicId, $newPublicId, [
                 'invalidate' => true,
             ]);
@@ -233,6 +233,7 @@ class CloudinaryFs extends Fs
     {
         try {
             $client = $this->client();
+            $uriPath = $this->appendBaseFolderToPath($uriPath);
             $url = $this->pathToUrl($uriPath);
             $file = @fopen($url, 'rb');
             if (!$file) {
@@ -285,7 +286,25 @@ class CloudinaryFs extends Fs
             ],
         ];
 
+        $url = Craft::parseEnv($this->url);
+        if ($url) {
+            $hostname = parse_url($url, PHP_URL_HOST);
+
+            if ($hostname !== 'res.cloudinary.com') {
+                $config['private_cdn'] = TRUE;
+                $config['secure_distribution'] = $hostname;
+            }
+        }
+
         return new Cloudinary($config);
+    }
+
+    protected function appendBaseFolderToPath(string $path): string
+    {
+        if (!empty($this->baseFolder)) {
+            $path = Craft::parseEnv($this->baseFolder) . '/' . $path;
+        }
+        return $path;
     }
 
     protected function pathToPublicId(string $path): string
