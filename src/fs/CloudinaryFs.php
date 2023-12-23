@@ -18,6 +18,8 @@ class CloudinaryFs extends Fs
 
     public string $apiSecret = '';
 
+    public string $baseFolder = '';
+
     public bool $dynamicFolders = false;
 
     public static function displayName(): string
@@ -52,23 +54,25 @@ class CloudinaryFs extends Fs
             $client = $this->client();
             $assets = [];
             $response = null;
-
+            $baseFolder = $this->baseFolder;
+            $folderProperty = $this->dynamicFolders ? 'asset_folder' : 'folder';
+            $query = "bytes > 0";
+            if ($baseFolder !== '') {
+                $baseFolder = Craft::parseEnv($this->baseFolder);
+                $query = "(folder:{$baseFolder}/* OR asset_folder:{$baseFolder}/*) AND bytes > 0";
+            }
             do {
-                $response = (array) $client->adminApi()->assets([
-                    'max_results' => 500,
-                    'next_cursor' => isset($response['next_cursor']) ? $response['next_cursor'] : null,
-                ]);
+                $response = (array) $client->searchApi()->expression($query)->maxResults(500)->execute();
                 $assets = array_merge($assets, $response['resources']);
             } while (isset($response['next_cursor']));
 
-            $assets = array_filter($assets, function($asset) {
-                return $asset['bytes'] > 0;
-            });
-
             foreach ($assets as $asset) {
+                if ($baseFolder !== '') {
+                    $asset[$folderProperty] = ltrim(substr($asset[$folderProperty],strlen($baseFolder)), '/');
+                }
                 yield new FsListing([
                     'basename' => basename($asset['public_id']) . '.' . $asset['format'],
-                    'dirname' => $asset['asset_folder'] ?? $asset['folder'],
+                    'dirname' => $asset[$folderProperty],
                     'type' => 'file',
                     'fileSize' => $asset['bytes'],
                     'dateModified' => (int) strtotime(isset($asset['last_updated']) ? $asset['last_updated']['updated_at'] : $asset['created_at']),
@@ -274,19 +278,26 @@ class CloudinaryFs extends Fs
         return new Cloudinary($config);
     }
 
-    protected function pathToPublicId(string $path): string
+    protected function modifyPath(string $path): string
     {
+        if ($this->baseFolder !== '') {
+            $path = Craft::parseEnv($this->baseFolder) . '/' . $path;
+        }
         if ($this->dynamicFolders) {
             $path = basename($path);
         }
+        return $path;
+    }
+
+    protected function pathToPublicId(string $path): string
+    {
+        $path = $this->modifyPath($path);
         return preg_replace('/\.[^.]+$/', '', $path);
     }
 
     protected function pathToUrl(string $path): string
     {
-        if ($this->dynamicFolders) {
-            $path = basename($path);
-        }
+        $path = $this->modifyPath($path);
         $client = $this->client();
         return $client->image($path)->toUrl();
     }
@@ -294,6 +305,10 @@ class CloudinaryFs extends Fs
     protected function pathToFolder(string $path): string
     {
         $folder = dirname($path);
+
+        if ($this->baseFolder !== '') {
+            $folder = Craft::parseEnv($this->baseFolder) . '/' . $folder;
+        }
 
         if ($folder === '.') {
             return '';
