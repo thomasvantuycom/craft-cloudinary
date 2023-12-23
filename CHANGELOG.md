@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.5.0 - 2023-12-23
+
+### Added
+
+- Support base folders ([#7](https://github.com/thomasvantuycom/craft-cloudinary/issues/7))
+
 ## 1.4.0 - 2023-12-07
 
 ### Added
