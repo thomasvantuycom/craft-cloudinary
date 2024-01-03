@@ -27,7 +27,7 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
             $publicId = $hasDynamicFolders ? basename($asset->getPath()) : $asset->getPath();
         }
         if ($hasBaseFolder && !$hasDynamicFolders) {
-            $publicId = $fs->baseFolder . '/' . $publicId;
+            $publicId = Craft::parseEnv($fs->baseFolder) . '/' . $publicId;
         }
         
         /** @var CloudinaryFs $transformFs */
