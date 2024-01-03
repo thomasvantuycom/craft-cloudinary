@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.5.1 - 2024-01-03
+
+### Fixed
+
+- Parse base folder .env variable in image transforms
+
 ## 1.5.0 - 2023-12-23
 
 ### Added
