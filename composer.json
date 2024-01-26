@@ -13,8 +13,10 @@
     },
     "require": {
         "php": ">=8.0.2",
-        "cloudinary/cloudinary_php": "^2.11",
-        "craftcms/cms": "^4.4.0"
+        "cloudinary/cloudinary_php": "^2.11.0",
+        "craftcms/cms": "^4.4.0",
+        "craftcms/flysystem": "^1.0.0",
+        "thomasvantuycom/flysystem-cloudinary": "^1.0.0"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",

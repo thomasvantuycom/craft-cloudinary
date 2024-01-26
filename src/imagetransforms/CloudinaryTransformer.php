@@ -3,10 +3,10 @@
 namespace thomasvantuycom\craftcloudinary\imagetransforms;
 
 use Cloudinary\Cloudinary;
-use Craft;
 use craft\base\Component;
 use craft\base\imagetransforms\ImageTransformerInterface;
 use craft\elements\Asset;
+use craft\helpers\App;
 use craft\models\ImageTransform;
 use thomasvantuycom\craftcloudinary\behaviors\CloudinaryBehavior;
 use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
@@ -27,7 +27,7 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
             $publicId = $hasDynamicFolders ? basename($asset->getPath()) : $asset->getPath();
         }
         if ($hasBaseFolder && !$hasDynamicFolders) {
-            $publicId = Craft::parseEnv($fs->baseFolder) . '/' . $publicId;
+            $publicId = App::parseEnv($fs->baseFolder) . '/' . $publicId;
         }
         
         /** @var CloudinaryFs $transformFs */
@@ -158,14 +158,18 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
     {
         $config = [
             'cloud' => [
-                'cloud_name' => Craft::parseEnv($cloudName),
-                'api_key' => Craft::parseEnv($apiKey),
-                'api_secret' => Craft::parseEnv($apiSecret),
+                'cloud_name' => App::parseEnv($cloudName),
+                'api_key' => App::parseEnv($apiKey),
+                'api_secret' => App::parseEnv($apiSecret),
+            ],
+            'url' => [
+                'analytics' => false,
+                'forceVersion' => false,
             ],
         ];
 
         if ($url) {
-            $hostname = parse_url(Craft::parseEnv($url), PHP_URL_HOST);
+            $hostname = parse_url(App::parseEnv($url), PHP_URL_HOST);
 
             if ($hostname !== 'res.cloudinary.com') {
                 $config['private_cdn'] = true;
