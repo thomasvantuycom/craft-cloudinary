@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.6.0 - 2024-01-26
+
+### Added
+
+- Support all file formats ([#8](https://github.com/thomasvantuycom/craft-cloudinary/issues/8))
+
 ## 1.5.1 - 2024-01-03
 
 ### Fixed

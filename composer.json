@@ -2,7 +2,7 @@
     "name": "thomasvantuycom/craft-cloudinary",
     "description": "Cloudinary integration for Craft CMS.",
     "type": "craft-plugin",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "license": "MIT",
     "support": {
         "email": "thomasvantuycom@protonmail.com",
