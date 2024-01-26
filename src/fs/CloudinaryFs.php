@@ -68,7 +68,7 @@ class CloudinaryFs extends FlysystemFs
             ],
         ]);
 
-        return new CloudinaryAdapter($client, $this->baseFolder, null, $this->dynamicFolders);
+        return new CloudinaryAdapter($client, App::parseEnv($this->baseFolder), null, $this->dynamicFolders);
     }
 
     protected function invalidateCdnPath(string $path): bool
