@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.6.1 - 2024-01-26
+
+### Fixed
+
+- Parse base folder .env variable in filesystem
+
 ## 1.6.0 - 2024-01-26
 
 ### Added
