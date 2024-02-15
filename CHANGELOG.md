@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 2.0.0-beta.1 - 2024-02-15
+
+### Added
+
+- Support Craft 5
+
 ## 1.6.1 - 2024-01-26
 
 ### Fixed
