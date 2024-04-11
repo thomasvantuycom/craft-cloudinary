@@ -35,7 +35,6 @@ class NotificationsController extends Controller
 
             // Verify notification signature
             Configuration::instance()->cloud->apiSecret = App::parseEnv($fs->apiSecret);
-            Configuration::instance()->cloud->apiSecret = App::parseEnv("abcd");
             
             $body = $this->request->getRawBody();
             $timestamp = $this->request->getHeaders()->get('X-Cld-Timestamp');
@@ -55,58 +54,47 @@ class NotificationsController extends Controller
             $type = $this->request->getRequiredBodyParam('notification_type');
             
             if ($type === 'create_folder') {
-                $folderName = $this->request->getRequiredBodyParam('folder_name');
-                $folderPath = $this->request->getRequiredBodyParam('folder_path');
+                $volumeId = $volume->id;
+                $name = $this->request->getRequiredBodyParam('folder_name');
+                $path = $this->request->getRequiredBodyParam('folder_path');
 
                 // Check if folder exists
-                $existingFolder = Craft::$app->getAssets()->findFolder([
-                    'volumeId' => $volume->id,
-                    'path' => $folderPath . '/',
+                $folderRecord = VolumeFolderRecord::findOne([
+                    'volumeId' => $volumeId,
+                    'path' => $path . '/',
                 ]);
 
-                if ($existingFolder !== null) {
+                if ($folderRecord !== null) {
                     return $this->asSuccess();
                 }
 
-                // Get parent folder
-                $criteria = ['volumeId' => $volume->id];
+                // Get parent folder ID
+                $parentFolderRecord = VolumeFolderRecord::findOne([
+                    'volumeId' => $volumeId,
+                    'path' => ($name === $path) ? '' : dirname($path) . '/',
+                ]);
 
-                if ($folderName === $folderPath) {
-                    $criteria['parentId'] = ':empty:';
-                } else {
-                    $criteria['path'] = dirname($folderPath) . '/';
-                }
-
-                $parentFolder = Craft::$app->getAssets()->findFolder($criteria);
+                $parentId = $parentFolderRecord->id;
 
                 // Store folder
-                $record = new VolumeFolderRecord();
-                $record->parentId = $parentFolder->id;
-                $record->volumeId = $volume->id;
-                $record->name = $folderName;
-                $record->path = $folderPath . '/';
-                $record->save();
+                $newFolderRecord = new VolumeFolderRecord([
+                    'parentId' => $parentId,
+                    'volumeId' => $volumeId,
+                    'name' => $name,
+                    'path' => $path . '/',
+                ]);
+                $newFolderRecord->save();
 
                 return $this->asSuccess();
             }
 
             if ($type === 'delete_folder') {
-                $folderPath = $this->request->getRequiredBodyParam('folder_path');
-
-                // Check if folder exists
-                $existingFolder = Craft::$app->getAssets()->findFolder([
-                    'volumeId' => $volume->id,
-                    'path' => $folderPath . '/',
-                ]);
-
-                if ($existingFolder === null) {
-                    return $this->asSuccess();
-                }
+                $path = $this->request->getRequiredBodyParam('folder_path');
 
                 // Delete folder
                 VolumeFolderRecord::deleteAll([
                     'volumeId' => $volume->id,
-                    'path' => $folderPath . '/',
+                    'path' => $path . '/',
                 ]);
 
                 return $this->asSuccess();
