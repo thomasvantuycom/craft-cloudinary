@@ -8,9 +8,11 @@ use craft\elements\Asset;
 use craft\events\DefineBehaviorsEvent;
 use craft\events\GenerateTransformEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterUrlRulesEvent;
 use craft\models\ImageTransform;
 use craft\services\Fs;
 use craft\services\ImageTransforms;
+use craft\web\UrlManager;
 use thomasvantuycom\craftcloudinary\behaviors\CloudinaryBehavior;
 use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
 use thomasvantuycom\craftcloudinary\imagetransforms\CloudinaryTransformer;
@@ -47,6 +49,10 @@ class Plugin extends BasePlugin
 
         Event::on(ImageTransform::class, ImageTransform::EVENT_DEFINE_BEHAVIORS, function(DefineBehaviorsEvent $event) {
             $event->behaviors['cloudinary'] = CloudinaryBehavior::class;
+        });
+
+        Event::on(UrlManager::class, UrlManager::EVENT_REGISTER_SITE_URL_RULES, function(RegisterUrlRulesEvent $event) {
+            $event->rules['cloudinary/notifications'] = 'cloudinary/notifications/receive';
         });
     }
 }
