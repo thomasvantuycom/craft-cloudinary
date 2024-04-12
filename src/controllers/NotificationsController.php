@@ -5,7 +5,10 @@ namespace thomasvantuycom\craftcloudinary\controllers;
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Utils\SignatureVerifier;
 use Craft;
+use craft\elements\Asset;
 use craft\helpers\App;
+use craft\helpers\Assets;
+use craft\records\Asset as AssetRecord;
 use craft\records\VolumeFolder as VolumeFolderRecord;
 use craft\web\Controller;
 use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
@@ -96,6 +99,55 @@ class NotificationsController extends Controller
                     'volumeId' => $volume->id,
                     'path' => $path . '/',
                 ]);
+
+                return $this->asSuccess();
+            }
+
+            if ($type === 'upload') {
+                $volumeId = $volume->id;
+                $publicId = $this->request->getRequiredBodyParam('public_id');
+                $format = $this->request->getRequiredBodyParam('format');
+                $folder = $this->request->getRequiredBodyParam('folder');
+                $size = $this->request->getRequiredBodyParam('bytes');
+
+                // Get folder ID
+                $folderRecord = VolumeFolderRecord::findOne([
+                    'volumeId' => $volumeId,
+                    'path' => $folder === '' ? '' : $folder . '/',
+                ]);
+
+                // Check if asset exists
+                $folderId = $folderRecord->id;
+                $filename = basename($publicId) . '.' . $format;
+
+                $assetRecord = AssetRecord::findOne([
+                    'volumeId' => $volumeId,
+                    'folderId' => $folderId,
+                    'filename' => $filename,
+                ]);
+
+                if ($assetRecord !== null) {
+                    return $this->asSuccess();
+                }
+
+                // Store Asset
+                $kind = Assets::getFileKindByExtension($filename);
+
+                $asset = new Asset([
+                    'volumeId' => $volumeId,
+                    'folderId' => $folderId,
+                    'filename' => $filename,
+                    'kind' => $kind,
+                    'size' => $size,
+                ]);
+
+                if ($kind === Asset::KIND_IMAGE) {
+                    $asset->width = $this->request->getRequiredBodyParam('width');
+                    $asset->height = $this->request->getRequiredBodyParam('height');
+                }
+                
+                $asset->setScenario(Asset::SCENARIO_INDEX);
+                Craft::$app->getElements()->saveElement($asset);
 
                 return $this->asSuccess();
             }
