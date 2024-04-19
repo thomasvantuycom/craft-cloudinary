@@ -186,6 +186,59 @@ class NotificationsController extends Controller
                     }
                 }
             }
+
+            if ($type === 'rename') {
+                $volumeId = $volume->id;
+                $resourceType = $this->request->getRequiredBodyParam('resource_type');
+                $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
+                $toPublicId = $this->request->getRequiredBodyParam('to_public_id');
+                $folder = $this->request->getRequiredBodyParam('folder');
+                
+                $fromFilename = basename($fromPublicId);
+                $fromFolder = dirname($fromPublicId);
+                $fromFolderPath = $fromFolder === '.' ? '' : $fromFolder . '/';
+                $toFilename = basename($toPublicId);
+                $toFolderPath = $folder === '' ? '' : $folder . '/';
+
+                $assetQuery = Asset::find()
+                    ->volumeId($volumeId)
+                    ->folderPath($fromFolderPath);
+                
+                if ($resourceType === 'raw') {
+                    $assetQuery->filename($fromFilename);
+                } else {
+                    $assetQuery->filename("$fromFilename.*");
+                    if ($resourceType === 'image') {
+                        $assetQuery->kind('image');
+                    } else {
+                        $assetQuery->kind(['video', 'audio']);
+                    }
+                }
+
+                $asset = $assetQuery->one();
+
+                if ($asset !== null) {
+                    if ($fromFolderPath !== $toFolderPath) {
+                        $folderRecord = VolumeFolderRecord::findOne([
+                            'volumeId' => $volumeId,
+                            'path' => $toFolderPath,
+                        ]);
+
+                        $asset->folderId = $folderRecord->id;
+                    }
+
+                    if ($fromFilename !== $toFilename) {
+                        if ($resourceType === 'raw') {
+                            $asset->filename = $toFilename;
+                        } else {
+                            $extension = pathinfo($asset->filename, PATHINFO_EXTENSION);
+                            $asset->filename = "$toFilename.$extension";
+                        }
+                    }
+
+                    Craft::$app->getElements()->saveElement($asset);
+                }
+            }
         } catch (Throwable $error) {
             return $this->asFailure();
         }
