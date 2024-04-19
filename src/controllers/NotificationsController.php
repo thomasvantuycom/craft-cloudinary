@@ -151,6 +151,41 @@ class NotificationsController extends Controller
 
                 return $this->asSuccess();
             }
+
+            if ($type === 'delete') {
+                $volumeId = $volume->id;
+                $resources = $this->request->getRequiredBodyParam('resources');
+
+                foreach ($resources as $resource) {
+                    $resourceType = $resource['resource_type'];
+                    $publicId = $resource['public_id'];
+                    $folder = $resource['folder'];
+
+                    $filename = basename($publicId);
+                    $folderPath = $folder === '' ? '' : $folder . '/';
+
+                    $assetQuery = Asset::find()
+                        ->volumeId($volumeId)
+                        ->folderPath($folderPath);
+                    
+                    if ($resourceType === 'raw') {
+                        $assetQuery->filename($filename);
+                    } else {
+                        $assetQuery->filename("$filename.*");
+                        if ($resourceType === 'image') {
+                            $assetQuery->kind('image');
+                        } else {
+                            $assetQuery->kind(['video', 'audio']);
+                        }
+                    }
+
+                    $asset = $assetQuery->one();
+                        
+                    if($asset !== null) {
+                        Craft::$app->getElements()->deleteElement($asset);
+                    }
+                }
+            }
         } catch (Throwable $error) {
             return $this->asFailure();
         }
