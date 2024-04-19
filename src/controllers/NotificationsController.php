@@ -65,13 +65,11 @@ class NotificationsController extends Controller
                 case 'rename':
                     return $this->_handleRename($volumeId);
                 default:
-                    return $this->asSucces();
+                    return $this->asSuccess();
             }
         } catch (Throwable $error) {
             return $this->asFailure($error->getMessage());
         }
-
-        return $this->asSuccess();
     }
 
     private function _handleCreateFolder($volumeId) {
