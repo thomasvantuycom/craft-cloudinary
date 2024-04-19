@@ -5,12 +5,11 @@ namespace thomasvantuycom\craftcloudinary\controllers;
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Utils\SignatureVerifier;
 use Craft;
-use craft\elements\Asset;
 use craft\db\Query;
 use craft\db\Table;
+use craft\elements\Asset;
 use craft\helpers\App;
 use craft\helpers\Assets;
-use craft\records\Asset as AssetRecord;
 use craft\records\VolumeFolder as VolumeFolderRecord;
 use craft\web\Controller;
 use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
@@ -53,7 +52,7 @@ class NotificationsController extends Controller
             // Handle notification
             $notificationType = $this->request->getRequiredBodyParam('notification_type');
 
-            switch($notificationType) {
+            switch ($notificationType) {
                 case 'create_folder':
                     return $this->_handleCreateFolder($volumeId);
                 case 'delete_folder':
@@ -72,7 +71,8 @@ class NotificationsController extends Controller
         }
     }
 
-    private function _handleCreateFolder($volumeId) {
+    private function _handleCreateFolder($volumeId)
+    {
         $name = $this->request->getRequiredBodyParam('folder_name');
         $path = $this->request->getRequiredBodyParam('folder_path');
 
@@ -81,7 +81,7 @@ class NotificationsController extends Controller
             ->from([Table::VOLUMEFOLDERS])
             ->where([
                 'volumeId' => $volumeId,
-                'path' => $path . '/'
+                'path' => $path . '/',
             ]);
         
         if ($existingFolderQuery->exists()) {
@@ -110,7 +110,8 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleDeleteFolder($volumeId) {
+    private function _handleDeleteFolder($volumeId)
+    {
         $path = $this->request->getRequiredBodyParam('folder_path');
 
         // Delete folder
@@ -122,7 +123,8 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleUpload($volumeId) {
+    private function _handleUpload($volumeId)
+    {
         $publicId = $this->request->getRequiredBodyParam('public_id');
         $format = $this->request->getRequiredBodyParam('format');
         $folder = $this->request->getRequiredBodyParam('folder');
@@ -177,7 +179,8 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleDelete($volumeId) {
+    private function _handleDelete($volumeId)
+    {
         $resources = $this->request->getRequiredBodyParam('resources');
 
         foreach ($resources as $resource) {
@@ -205,7 +208,7 @@ class NotificationsController extends Controller
 
             $asset = $assetQuery->one();
                 
-            if($asset !== null) {
+            if ($asset !== null) {
                 Craft::$app->getElements()->deleteElement($asset);
             }
         }
@@ -213,7 +216,8 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleRename($volumeId) {
+    private function _handleRename($volumeId)
+    {
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
         $toPublicId = $this->request->getRequiredBodyParam('to_public_id');
