@@ -60,27 +60,36 @@ class NotificationsController extends Controller
 
         // Process notification
         $notificationType = $this->request->getRequiredBodyParam('notification_type');
+        $baseFolder = App::parseEnv($fs->baseFolder);
 
         switch ($notificationType) {
             case 'create_folder':
-                return $this->_processCreateFolder($volumeId);
+                return $this->_processCreateFolder($volumeId, $baseFolder);
             case 'delete_folder':
-                return $this->_processDeleteFolder($volumeId);
+                return $this->_processDeleteFolder($volumeId, $baseFolder);
             case 'upload':
-                return $this->_processUpload($volumeId);
+                return $this->_processUpload($volumeId, $baseFolder);
             case 'delete':
-                return $this->_processDelete($volumeId);
+                return $this->_processDelete($volumeId, $baseFolder);
             case 'rename':
-                return $this->_processRename($volumeId);
+                return $this->_processRename($volumeId, $baseFolder);
             default:
                 return $this->asSuccess();
         }
     }
 
-    private function _processCreateFolder($volumeId): Response
+    private function _processCreateFolder($volumeId, $baseFolder): Response
     {
         $name = $this->request->getRequiredBodyParam('folder_name');
         $path = $this->request->getRequiredBodyParam('folder_path');
+
+        if (!empty($baseFolder)) {
+            if (!str_starts_with($path, $baseFolder . '/')) {
+                return $this->asSuccess();
+            }
+
+            $path = substr($path, strlen($baseFolder) + 1);
+        }
 
         // Check if folder exists
         $existingFolderQuery = (new Query())
@@ -116,9 +125,17 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processDeleteFolder($volumeId): Response
+    private function _processDeleteFolder($volumeId, $baseFolder): Response
     {
         $path = $this->request->getRequiredBodyParam('folder_path');
+
+        if (!empty($baseFolder)) {
+            if (!str_starts_with($path, $baseFolder . '/')) {
+                return $this->asSuccess();
+            }
+
+            $path = substr($path, strlen($baseFolder) + 1);
+        }
 
         // Delete folder
         VolumeFolderRecord::deleteAll([
@@ -129,11 +146,19 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processUpload($volumeId): Response
+    private function _processUpload($volumeId, $baseFolder): Response
     {
         $publicId = $this->request->getRequiredBodyParam('public_id');
         $folder = $this->request->getRequiredBodyParam('folder');
         $size = $this->request->getRequiredBodyParam('bytes');
+
+        if (!empty($baseFolder)) {
+            if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
+                return $this->asSuccess();
+            }
+
+            $folder = substr($folder, strlen($baseFolder) + 1);
+        }
 
         // Get folder ID
         $folderId = (new Query())
@@ -150,7 +175,7 @@ class NotificationsController extends Controller
 
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         
-        if($resourceType !== 'raw') {
+        if ($resourceType !== 'raw') {
             $format = $this->request->getRequiredBodyParam('format');
 
             $filename = $filename . '.' . $format;
@@ -192,7 +217,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processDelete($volumeId): Response
+    private function _processDelete($volumeId, $baseFolder): Response
     {
         $resources = $this->request->getRequiredBodyParam('resources');
 
@@ -200,6 +225,14 @@ class NotificationsController extends Controller
             $resourceType = $resource['resource_type'];
             $publicId = $resource['public_id'];
             $folder = $resource['folder'];
+
+            if (!empty($baseFolder)) {
+                if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
+                    return $this->asSuccess();
+                }
+    
+                $folder = substr($folder, strlen($baseFolder) + 1);
+            }
 
             $filename = basename($publicId);
             $folderPath = $folder === '' ? '' : $folder . '/';
@@ -229,7 +262,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processRename($volumeId): Response
+    private function _processRename($volumeId, $baseFolder): Response
     {
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
@@ -241,6 +274,19 @@ class NotificationsController extends Controller
         $fromFolderPath = $fromFolder === '.' ? '' : $fromFolder . '/';
         $toFilename = basename($toPublicId);
         $toFolderPath = $folder === '' ? '' : $folder . '/';
+
+        if (!empty($baseFolder)) {
+            if ($fromFolder !== $baseFolder && !str_starts_with($fromFolder, $baseFolder . '/')) {
+                return $this->asSuccess();
+            }
+
+            if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
+                return $this->asSuccess();
+            }
+
+            $fromFolderPath = substr($fromFolderPath, strlen($baseFolder) + 1);
+            $toFolderPath = substr($toFolderPath, strlen($baseFolder) + 1);
+        }
 
         $assetQuery = Asset::find()
             ->volumeId($volumeId)
