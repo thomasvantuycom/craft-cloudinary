@@ -12,66 +12,72 @@ use craft\helpers\App;
 use craft\helpers\Assets;
 use craft\records\VolumeFolder as VolumeFolderRecord;
 use craft\web\Controller;
+use InvalidArgumentException;
 use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
-use Throwable;
+use yii\web\BadRequestHttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
 class NotificationsController extends Controller
 {
     public $enableCsrfValidation = false;
 
-    protected array|bool|int $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = ['process'];
 
-    public function actionReceive(): Response
+    public function actionProcess(): Response
     {
         $this->requirePostRequest();
-        $this->requireAcceptsJson();
+
+        // Verify volume
+        $volumeId = $this->request->getRequiredQueryParam('volume');
+
+        $volume = Craft::$app->getVolumes()->getVolumeById($volumeId);
+
+        if ($volume === null) {
+            throw new NotFoundHttpException('Volume not found');
+        }
+
+        $fs = $volume->getFs();
+
+        if (!$fs instanceof CloudinaryFs) {
+            throw new BadRequestHttpException('Invalid volume');
+        }
+
+        // Verify signature
+        Configuration::instance()->cloud->apiSecret = App::parseEnv($fs->apiSecret);
+
+        $body = $this->request->getRawBody();
+        $timestamp = $this->request->getHeaders()->get('X-Cld-Timestamp');
+        $signature = $this->request->getHeaders()->get('X-Cld-Signature');
 
         try {
-            // Verify that volume is valid
-            $volumeHandle = $this->request->getRequiredQueryParam('volume');
-            $volume = Craft::$app->getVolumes()->getVolumeByHandle($volumeHandle);
-            $volumeId = $volume->id;
-            $fs = $volume->getFs();
-
-            if (!($fs instanceof CloudinaryFs)) {
-                return $this->asFailure();
-            }
-
-            // Verify notification signature
-            Configuration::instance()->cloud->apiSecret = App::parseEnv($fs->apiSecret);
-            
-            $body = $this->request->getRawBody();
-            $timestamp = $this->request->getHeaders()->get('X-Cld-Timestamp');
-            $signature = $this->request->getHeaders()->get('X-Cld-Signature');
-
             if (SignatureVerifier::verifyNotificationSignature($body, $timestamp, $signature) === false) {
-                return $this->asFailure();
+                throw new BadRequestHttpException('Invalid signature');
             }
+        } catch (InvalidArgumentException $error) {
+            throw new BadRequestHttpException($error->getMessage(), 0, $error);
+        }
 
-            // Handle notification
-            $notificationType = $this->request->getRequiredBodyParam('notification_type');
+        // Process notification
+        $notificationType = $this->request->getRequiredBodyParam('notification_type');
 
-            switch ($notificationType) {
-                case 'create_folder':
-                    return $this->_handleCreateFolder($volumeId);
-                case 'delete_folder':
-                    return $this->_handleDeleteFolder($volumeId);
-                case 'upload':
-                    return $this->_handleUpload($volumeId);
-                case 'delete':
-                    return $this->_handleDelete($volumeId);
-                case 'rename':
-                    return $this->_handleRename($volumeId);
-                default:
-                    return $this->asSuccess();
-            }
-        } catch (Throwable $error) {
-            return $this->asFailure($error->getMessage());
+        switch ($notificationType) {
+            case 'create_folder':
+                return $this->_processCreateFolder($volumeId);
+            case 'delete_folder':
+                return $this->_processDeleteFolder($volumeId);
+            case 'upload':
+                return $this->_processUpload($volumeId);
+            case 'delete':
+                return $this->_processDelete($volumeId);
+            case 'rename':
+                return $this->_processRename($volumeId);
+            default:
+                return $this->asSuccess();
         }
     }
 
-    private function _handleCreateFolder($volumeId)
+    private function _processCreateFolder($volumeId): Response
     {
         $name = $this->request->getRequiredBodyParam('folder_name');
         $path = $this->request->getRequiredBodyParam('folder_path');
@@ -110,7 +116,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleDeleteFolder($volumeId)
+    private function _processDeleteFolder($volumeId): Response
     {
         $path = $this->request->getRequiredBodyParam('folder_path');
 
@@ -123,7 +129,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleUpload($volumeId)
+    private function _processUpload($volumeId): Response
     {
         $publicId = $this->request->getRequiredBodyParam('public_id');
         $format = $this->request->getRequiredBodyParam('format');
@@ -179,7 +185,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleDelete($volumeId)
+    private function _processDelete($volumeId): Response
     {
         $resources = $this->request->getRequiredBodyParam('resources');
 
@@ -216,7 +222,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _handleRename($volumeId)
+    private function _processRename($volumeId): Response
     {
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
