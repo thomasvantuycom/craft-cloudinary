@@ -1,5 +1,15 @@
 # Release Notes for Cloudinary
 
+## 1.7.0 - 2024-04-20
+
+### Added
+
+- Support webhook notifications in fixed folders mode
+
+### Deprecated
+
+- Deprecated support for dynamic folders mode
+
 ## 1.6.1 - 2024-01-26
 
 ### Fixed
