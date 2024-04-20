@@ -54,3 +54,7 @@ In addition, you can incorporate any of [Cloudinary's transformation options](ht
 <img src="{{ asset.getUrl(thumb) }}">
 ```
 Transformation options should be in camelCase, meaning `aspect_ratio` becomes `aspectRatio`, or `fetch_format` becomes `fetchFornat`.
+
+## Webhook notifications
+
+To keep Craft aligned with changes made directly in Cloudinary, activate webhook notifications. Simply go to your [Cloudinary settings](https://console.cloudinary.com/settings/c-4547d495209fcc884b171f78858f04/webhooks) and add a new notification URL. Point it to the base URL of your website followed by `/actions/cloudinary/notifications/process?volume={VOLUME_ID}`. Remember to replace `{VOLUME_ID}` with the relevant asset volume ID. Enable the relevant notification types: `upload`, `delete`, `rename`, `create_folder`, and `delete_folder`. Keep in mind, this setup only functions in local development if your local domain is publicly accessible via a service like ngrok. Additionally, note that the webhook may struggle with a large volume of operations. If you frequently make extensive changes in the Cloudinary Console, consider re-indexing your asset volume instead.
