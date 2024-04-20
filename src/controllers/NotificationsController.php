@@ -132,7 +132,6 @@ class NotificationsController extends Controller
     private function _processUpload($volumeId): Response
     {
         $publicId = $this->request->getRequiredBodyParam('public_id');
-        $format = $this->request->getRequiredBodyParam('format');
         $folder = $this->request->getRequiredBodyParam('folder');
         $size = $this->request->getRequiredBodyParam('bytes');
 
@@ -147,7 +146,15 @@ class NotificationsController extends Controller
             ->scalar();
 
         // Check if asset exists
-        $filename = basename($publicId) . '.' . $format;
+        $filename = basename($publicId);
+
+        $resourceType = $this->request->getRequiredBodyParam('resource_type');
+        
+        if($resourceType !== 'raw') {
+            $format = $this->request->getRequiredBodyParam('format');
+
+            $filename = $filename . '.' . $format;
+        }
 
         $existingAssetQuery = (new Query())
             ->from(['assets' => Table::ASSETS])
