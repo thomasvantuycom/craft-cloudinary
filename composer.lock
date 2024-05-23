@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "d8205427dc16295a442cc940c45ab3c0",
+    "content-hash": "915e98ff40f76ea5c278ed9dc8287562",
     "packages": [
         {
             "name": "cebe/markdown",
@@ -5830,16 +5830,16 @@
         },
         {
             "name": "thomasvantuycom/flysystem-cloudinary",
-            "version": "v1.0.0",
+            "version": "v1.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thomasvantuycom/flysystem-cloudinary.git",
-                "reference": "9267de032c556a43c3a6aa8b45da5c195aef7782"
+                "reference": "351874909fffbf93c983ec46f7349d3a21e18614"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thomasvantuycom/flysystem-cloudinary/zipball/9267de032c556a43c3a6aa8b45da5c195aef7782",
-                "reference": "9267de032c556a43c3a6aa8b45da5c195aef7782",
+                "url": "https://api.github.com/repos/thomasvantuycom/flysystem-cloudinary/zipball/351874909fffbf93c983ec46f7349d3a21e18614",
+                "reference": "351874909fffbf93c983ec46f7349d3a21e18614",
                 "shasum": ""
             },
             "require": {
@@ -5892,7 +5892,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-01-25T23:30:12+00:00"
+            "time": "2024-05-23T05:27:02+00:00"
         },
         {
             "name": "twig/twig",
