@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.7.1 - 2024-05-23
+
+### Fixed
+
+- Ignore backup placeholders
+
 ## 1.7.0 - 2024-04-20
 
 ### Added
