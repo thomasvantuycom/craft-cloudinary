@@ -19,8 +19,6 @@ class CloudinaryFs extends FlysystemFs
 
     public string $baseFolder = '';
 
-    public bool $dynamicFolders = false;
-
     protected bool $foldersHaveTrailingSlashes = false;
 
     public static function displayName(): string
@@ -68,7 +66,7 @@ class CloudinaryFs extends FlysystemFs
             ],
         ]);
 
-        return new CloudinaryAdapter($client, App::parseEnv($this->baseFolder), null, $this->dynamicFolders);
+        return new CloudinaryAdapter($client, App::parseEnv($this->baseFolder));
     }
 
     protected function invalidateCdnPath(string $path): bool

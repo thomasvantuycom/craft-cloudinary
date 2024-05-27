@@ -39,12 +39,3 @@
     value: fs.baseFolder,
     errors: fs.getErrors('baseFolder'),
 }) }}
-
-{{ forms.lightswitchField({
-    label: "Dynamic Folders mode"|t('cloudinary'),
-    instructions: "Visit your [Media Library preferences](https://console.cloudinary.com/console/media_library/preferences) to verify whether Dynamic Folders mode is enabled. If the option is not mentioned in the preferences, leave it untoggled. This could be the case for products on the free plan."|t('cloudinary'),
-    id: 'dynamicFolders',
-    name: 'dynamicFolders',
-    on: fs.dynamicFolders,
-    warning: fs.dynamicFolders ? "Support for Dynamic Folders mode is now deprecated."|t('cloudinary') : '',
-}) }}
