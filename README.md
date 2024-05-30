@@ -33,7 +33,7 @@ composer require thomasvantuycom/craft-cloudinary
 
 The plugin adds a Cloudinary filesystem type to Craft. It can be used solely as a transform filesystem or as a storage filesystem as well. 
 
-To create a new Cloudinary filesystem to use with your volumes, visit **Settings** → **Filesystems**, and press **New filesystem**. Select “Cloudinary” for the **Filesystem Type** setting and configure as needed. If you'd like to store assets in Cloudinary and deliver them without any transformations, make sure to toggle **Files in this filesystem have public URLs** and to set the **Base URL** to “https://res.cloudinary.com/demo/image/upload/”, replacing “demo” with your own Cloudinary cloud name.
+To create a new Cloudinary filesystem to use with your volumes, visit **Settings** → **Filesystems**, and press **New filesystem**. Select “Cloudinary” for the **Filesystem Type** setting and configure as needed.
 
 To start using the filesystem, visit **Settings** → **Assets** → **Volumes**. Here you can create a new volume using the Cloudinary filesystem for both storage and transforms, or add the Cloudinary filesystem to any existing volumes for transforms only. In the latter case, any assets with public URLs from any local or remote filesystem are transformed by Cloudinary using the [fetch feature](https://cloudinary.com/documentation/fetch_remote_images#fetch_and_deliver_remote_files). This may not work in local development setups.
 
