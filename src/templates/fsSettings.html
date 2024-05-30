@@ -29,13 +29,3 @@
     errors: fs.getErrors('apiSecret'),
     required: true,
 }) }}
-
-{{ forms.autosuggestField({
-    label: "Base Folder"|t('cloudinary'),
-    instructions: "The base folder is the root folder for all assets uploaded to Cloudinary. If you leave this field blank, assets will be uploaded to the root folder of your Cloudinary account."|t('cloudinary'),
-    id: 'baseFolder',
-    name: 'baseFolder',
-    suggestEnvVars: true,
-    value: fs.baseFolder,
-    errors: fs.getErrors('baseFolder'),
-}) }}

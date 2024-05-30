@@ -60,35 +60,35 @@ class NotificationsController extends Controller
 
         // Process notification
         $notificationType = $this->request->getRequiredBodyParam('notification_type');
-        $baseFolder = App::parseEnv($fs->baseFolder);
+        $subpath = $volume->getSubpath(false);
 
         switch ($notificationType) {
             case 'create_folder':
-                return $this->_processCreateFolder($volumeId, $baseFolder);
+                return $this->_processCreateFolder($volumeId, $subpath);
             case 'delete_folder':
-                return $this->_processDeleteFolder($volumeId, $baseFolder);
+                return $this->_processDeleteFolder($volumeId, $subpath);
             case 'upload':
-                return $this->_processUpload($volumeId, $baseFolder);
+                return $this->_processUpload($volumeId, $subpath);
             case 'delete':
-                return $this->_processDelete($volumeId, $baseFolder);
+                return $this->_processDelete($volumeId, $subpath);
             case 'rename':
-                return $this->_processRename($volumeId, $baseFolder);
+                return $this->_processRename($volumeId, $subpath);
             default:
                 return $this->asSuccess();
         }
     }
 
-    private function _processCreateFolder($volumeId, $baseFolder): Response
+    private function _processCreateFolder($volumeId, $subpath): Response
     {
         $name = $this->request->getRequiredBodyParam('folder_name');
         $path = $this->request->getRequiredBodyParam('folder_path');
 
-        if (!empty($baseFolder)) {
-            if (!str_starts_with($path, $baseFolder . '/')) {
+        if (!empty($subpath)) {
+            if (!str_starts_with($path, $subpath . '/')) {
                 return $this->asSuccess();
             }
 
-            $path = substr($path, strlen($baseFolder) + 1);
+            $path = substr($path, strlen($subpath) + 1);
         }
 
         // Check if folder exists
@@ -125,16 +125,16 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processDeleteFolder($volumeId, $baseFolder): Response
+    private function _processDeleteFolder($volumeId, $subpath): Response
     {
         $path = $this->request->getRequiredBodyParam('folder_path');
 
-        if (!empty($baseFolder)) {
-            if (!str_starts_with($path, $baseFolder . '/')) {
+        if (!empty($subpath)) {
+            if (!str_starts_with($path, $subpath . '/')) {
                 return $this->asSuccess();
             }
 
-            $path = substr($path, strlen($baseFolder) + 1);
+            $path = substr($path, strlen($subpath) + 1);
         }
 
         // Delete folder
@@ -146,18 +146,18 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processUpload($volumeId, $baseFolder): Response
+    private function _processUpload($volumeId, $subpath): Response
     {
         $publicId = $this->request->getRequiredBodyParam('public_id');
         $folder = $this->request->getRequiredBodyParam('folder');
         $size = $this->request->getRequiredBodyParam('bytes');
 
-        if (!empty($baseFolder)) {
-            if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
+        if (!empty($subpath)) {
+            if ($folder !== $subpath && !str_starts_with($folder, $subpath . '/')) {
                 return $this->asSuccess();
             }
 
-            $folder = substr($folder, strlen($baseFolder) + 1);
+            $folder = substr($folder, strlen($subpath) + 1);
         }
 
         // Get folder ID
@@ -217,7 +217,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processDelete($volumeId, $baseFolder): Response
+    private function _processDelete($volumeId, $subpath): Response
     {
         $resources = $this->request->getRequiredBodyParam('resources');
 
@@ -226,12 +226,12 @@ class NotificationsController extends Controller
             $publicId = $resource['public_id'];
             $folder = $resource['folder'];
 
-            if (!empty($baseFolder)) {
-                if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
+            if (!empty($subpath)) {
+                if ($folder !== $subpath && !str_starts_with($folder, $subpath . '/')) {
                     return $this->asSuccess();
                 }
     
-                $folder = substr($folder, strlen($baseFolder) + 1);
+                $folder = substr($folder, strlen($subpath) + 1);
             }
 
             $filename = basename($publicId);
@@ -262,7 +262,7 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processRename($volumeId, $baseFolder): Response
+    private function _processRename($volumeId, $subpath): Response
     {
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
@@ -275,17 +275,17 @@ class NotificationsController extends Controller
         $toFilename = basename($toPublicId);
         $toFolderPath = $folder === '' ? '' : $folder . '/';
 
-        if (!empty($baseFolder)) {
-            if ($fromFolder !== $baseFolder && !str_starts_with($fromFolder, $baseFolder . '/')) {
+        if (!empty($subpath)) {
+            if ($fromFolder !== $subpath && !str_starts_with($fromFolder, $subpath . '/')) {
                 return $this->asSuccess();
             }
 
-            if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
+            if ($folder !== $subpath && !str_starts_with($folder, $subpath . '/')) {
                 return $this->asSuccess();
             }
 
-            $fromFolderPath = substr($fromFolderPath, strlen($baseFolder) + 1);
-            $toFolderPath = substr($toFolderPath, strlen($baseFolder) + 1);
+            $fromFolderPath = substr($fromFolderPath, strlen($subpath) + 1);
+            $toFolderPath = substr($toFolderPath, strlen($subpath) + 1);
         }
 
         $assetQuery = Asset::find()

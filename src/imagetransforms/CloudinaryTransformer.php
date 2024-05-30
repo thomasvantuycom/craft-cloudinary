@@ -19,14 +19,10 @@ class CloudinaryTransformer extends Component implements ImageTransformerInterfa
         $transformFs = $asset->getVolume()->getTransformFs();
         
         $isCloudinaryFs = $fs instanceof CloudinaryFs;
-        $hasBaseFolder = $isCloudinaryFs && $fs->baseFolder;
 
         $publicId = $asset->getUrl();
         if ($isCloudinaryFs) {
-            $publicId = $asset->getPath();
-        }
-        if ($hasBaseFolder) {
-            $publicId = App::parseEnv($fs->baseFolder) . '/' . $publicId;
+            $publicId = $asset->getVolume()->getSubPath() . $asset->getPath();
         }
         
         /** @var CloudinaryFs $transformFs */

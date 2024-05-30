@@ -17,8 +17,6 @@ class CloudinaryFs extends FlysystemFs
 
     public string $apiSecret = '';
 
-    public string $baseFolder = '';
-
     protected bool $foldersHaveTrailingSlashes = false;
 
     public static function displayName(): string
@@ -66,7 +64,7 @@ class CloudinaryFs extends FlysystemFs
             ],
         ]);
 
-        return new CloudinaryAdapter($client, App::parseEnv($this->baseFolder));
+        return new CloudinaryAdapter($client);
     }
 
     protected function invalidateCdnPath(string $path): bool
