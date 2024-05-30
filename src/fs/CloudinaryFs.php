@@ -17,6 +17,10 @@ class CloudinaryFs extends FlysystemFs
 
     public string $apiSecret = '';
 
+    public bool $privateCdn = false;
+
+    public string $cname = '';
+
     protected bool $foldersHaveTrailingSlashes = false;
 
     public static function displayName(): string
@@ -35,6 +39,8 @@ class CloudinaryFs extends FlysystemFs
     {
         return array_merge(parent::defineRules(), [
             [['cloudName', 'apiKey', 'apiSecret'], 'required'],
+            [['privateCdn'], 'boolean'],
+            [['cname'], 'trim', 'chars' => ' /'],
         ]);
     }
 

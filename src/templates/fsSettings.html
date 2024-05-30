@@ -29,3 +29,23 @@
     errors: fs.getErrors('apiSecret'),
     required: true,
 }) }}
+
+{{ forms.lightswitchField({
+    label: "Private CDN"|t('cloudinary'),
+    instructions: "Toggle if you use a private CDN to serve assets."|t('cloudinary'),
+    id: 'privateCdn',
+    name: 'privateCdn',
+    on: fs.privateCdn,
+}) }}
+
+{{ forms.autosuggestField({
+    label: "Custom CNAME"|t('cloudinary'),
+    instructions: "Fill out this field if you use a custom CNAME to serve assets."|t('cloudinary'),    
+    id: 'cname',
+    name: 'cname',
+    suggestEnvVars: true,
+    value: fs.cname,
+    errors: fs.getErrors('cname'),
+    required: false,
+    placeholder: "cdn.example.com"|t('cloudinary'),
+}) }}
