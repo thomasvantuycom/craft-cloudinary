@@ -1,5 +1,20 @@
 # Release Notes for Cloudinary
 
+## 2.0.0 - 2024-05-30
+
+### Added
+
+- Support Craft 5
+
+### Changed
+
+- Use volume subpath for base folder support
+- Make private CDN and custom CNAME support more explicit
+
+### Removed
+
+- Remove support for dynamic folders mode
+
 ## 1.7.1 - 2024-05-23
 
 ### Fixed
