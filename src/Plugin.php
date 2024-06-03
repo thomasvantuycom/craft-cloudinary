@@ -5,6 +5,7 @@ namespace thomasvantuycom\craftcloudinary;
 use Craft;
 use craft\base\Plugin as BasePlugin;
 use craft\elements\Asset;
+use craft\events\DefineAssetUrlEvent;
 use craft\events\DefineBehaviorsEvent;
 use craft\events\GenerateTransformEvent;
 use craft\events\RegisterComponentTypesEvent;
@@ -13,6 +14,7 @@ use craft\services\Fs;
 use craft\services\ImageTransforms;
 use thomasvantuycom\craftcloudinary\behaviors\CloudinaryBehavior;
 use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
+use thomasvantuycom\craftcloudinary\helpers\AssetHelper;
 use thomasvantuycom\craftcloudinary\imagetransforms\CloudinaryTransformer;
 use yii\base\Event;
 
@@ -47,6 +49,15 @@ class Plugin extends BasePlugin
 
         Event::on(ImageTransform::class, ImageTransform::EVENT_DEFINE_BEHAVIORS, function(DefineBehaviorsEvent $event) {
             $event->behaviors['cloudinary'] = CloudinaryBehavior::class;
+        });
+
+        Event::on(Asset::class, Asset::EVENT_DEFINE_URL, function(DefineAssetUrlEvent $event) {
+            $asset = $event->sender;
+            $fs = $asset->getVolume()->getFs();
+
+            if ($fs instanceof CloudinaryFs) {
+                $event->url = AssetHelper::url($asset, $event->transform);
+            }
         });
     }
 }
