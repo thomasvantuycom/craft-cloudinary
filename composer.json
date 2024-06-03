@@ -16,7 +16,7 @@
         "cloudinary/cloudinary_php": "^2.11.0",
         "craftcms/cms": "^5.0.0",
         "craftcms/flysystem": "^2.0.0",
-        "thomasvantuycom/flysystem-cloudinary": "^1.0.2"
+        "thomasvantuycom/flysystem-cloudinary": "^1.0.4"
     },
     "require-dev": {
         "craftcms/ecs": "dev-main",
