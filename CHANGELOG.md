@@ -1,5 +1,15 @@
 # Release Notes for Cloudinary
 
+## 2.1.0 - 2024-06-03
+
+### Added
+
+- Serve and transform all resource types
+
+### Fixed
+
+- Classify PDFs as images
+
 ## 2.0.0 - 2024-05-30
 
 ### Added
