@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 1.7.2 - 2024-06-05
+
+### Fixed
+
+- Classify PDFs as images
+
 ## 1.7.1 - 2024-05-23
 
 ### Fixed
