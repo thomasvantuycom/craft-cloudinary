@@ -2,176 +2,59 @@
 
 namespace thomasvantuycom\craftcloudinary\imagetransforms;
 
-use Cloudinary\Cloudinary;
 use craft\base\Component;
 use craft\base\imagetransforms\ImageTransformerInterface;
 use craft\elements\Asset;
-use craft\helpers\App;
 use craft\models\ImageTransform;
-use thomasvantuycom\craftcloudinary\behaviors\CloudinaryBehavior;
-use thomasvantuycom\craftcloudinary\fs\CloudinaryFs;
+use thomasvantuycom\craftcloudinary\behaviors\CloudinaryUrlBehavior;
 
 class CloudinaryTransformer extends Component implements ImageTransformerInterface
 {
-    public function getTransformUrl(Asset $asset, ImageTransform|CloudinaryBehavior $imageTransform, bool $immediately): string
+    public function getTransformUrl(Asset $asset, ImageTransform $imageTransform, bool $immediately): string
     {
-        $fs = $asset->getVolume()->getFs();
-        $transformFs = $asset->getVolume()->getTransformFs();
-        
-        $isCloudinaryFs = $fs instanceof CloudinaryFs;
-
-        $publicId = $asset->getUrl();
-        if ($isCloudinaryFs) {
-            $publicId = $asset->getVolume()->getSubPath() . $asset->getPath();
-        }
-        
-        /** @var CloudinaryFs $transformFs */
-        $client = $this->client($transformFs->cloudName, $transformFs->apiKey, $transformFs->apiSecret, $transformFs->privateCdn, $transformFs->cname);
-        $transform = $client->image($publicId);
-
-        $qualifiers = [
-            'angle' => $imageTransform->angle,
-            'aspect_ratio' => $imageTransform->aspectRatio,
-            'background' => $imageTransform->fill ?? $imageTransform->background,
-            'border' => $imageTransform->border,
-            'color' => $imageTransform->color,
-            'color_space' => $imageTransform->colorSpace,
-            'crop' => $imageTransform->crop,
-            'default_image' => $imageTransform->defaultImage,
-            'delay' => $imageTransform->delay,
-            'density' => $imageTransform->density,
-            'dpr' => $imageTransform->dpr,
-            'effect' => $imageTransform->effect,
-            'fetch_format' => $imageTransform->fetchFormat,
-            'flags' => $imageTransform->flags,
-            'gravity' => $imageTransform->gravity,
-            'height' => $imageTransform->height,
-            'overlay' => $imageTransform->overlay,
-            'opacity' => $imageTransform->opacity,
-            'page' => $imageTransform->page,
-            'prefix' => $imageTransform->prefix,
-            'quality' => $imageTransform->quality,
-            'radius' => $imageTransform->radius,
-            'transformation' => $imageTransform->transformation,
-            'underlay' => $imageTransform->underlay,
+        $transform = [
             'width' => $imageTransform->width,
-            'x' => $imageTransform->x,
-            'y' => $imageTransform->y,
-            'zoom' => $imageTransform->zoom,
+            'height' => $imageTransform->height,
+            'crop' => $this->_mapModeToCrop($imageTransform->mode, $imageTransform->upscale),
+            'gravity' => $this->_mapPositionToGravity($imageTransform->position),
+            'flags' => $imageTransform->interlace !== 'none' ? 'progressive' : null,
+            'quality' => $imageTransform->quality,
+            'background' => $imageTransform->fill,
+            'fetch_format' => $imageTransform->format,
         ];
 
-        if ($qualifiers['crop'] === null) {
-            switch ($imageTransform->mode) {
-                case 'crop':
-                    $mode = 'fill';
-                    break;
-                case 'fit':
-                    $mode = $imageTransform->upscale ? 'fit' : 'limit';
-                    break;
-                case 'letterbox':
-                    $mode = $imageTransform->upscale ? 'pad' : 'lpad';
-                    break;
-                case 'stretch':
-                    $mode = 'scale';
-                    break;
-            }
-            $qualifiers['crop'] = $mode;
-        }
-
-        if ($qualifiers['gravity'] === null) {
-            switch ($imageTransform->position) {
-                case 'top-left':
-                    $compassPosition = 'north_west';
-                    break;
-                case 'top-center':
-                    $compassPosition = 'north';
-                    break;
-                case 'top-right':
-                    $compassPosition = 'north_east';
-                    break;
-                case 'center-left':
-                    $compassPosition = 'west';
-                    break;
-                case 'center-center':
-                    $compassPosition = 'center';
-                    break;
-                case 'center-right':
-                    $compassPosition = 'east';
-                    break;
-                case 'bottom-left':
-                    $compassPosition = 'south_west';
-                    break;
-                case 'bottom-center':
-                    $compassPosition = 'south';
-                    break;
-                case 'bottom-right':
-                    $compassPosition = 'south_east';
-                    break;
-            }
-            $qualifiers['gravity'] = $compassPosition;
-        }
-        
-        if ($imageTransform->interlace !== 'none') {
-            if ($qualifiers['flags'] !== null) {
-                $qualifiers['flags'] .= '.progressive';
-            } else {
-                $qualifiers['flags'] = 'progressive';
-            }
-        }
-
-        if ($imageTransform->quality === null || $imageTransform->quality === 0) {
-            $qualifiers['quality'] = 'auto';
-        }
-
-        if ($qualifiers['background'] === null) {
-            if ($imageTransform->fill) {
-                $qualifiers['background'] = $imageTransform->fill;
-            }
-        }
-
-        if ($qualifiers['fetch_format'] === null) {
-            if ($imageTransform->format) {
-                $qualifiers['fetch_format'] = $imageTransform->format;
-            }
-        }
-
-        $transform->addActionFromQualifiers($qualifiers);
-
-        if (!$isCloudinaryFs) {
-            $transform->deliveryType("fetch");
-        }
-
-        return $transform->toUrl();
+        /**
+         * @var CloudinaryUrlBehavior $asset
+         */
+        return $asset->getCloudinaryUrl($transform);
     }
 
     public function invalidateAssetTransforms(Asset $asset): void
     {
-        // ...
     }
 
-    protected function client($cloudName, $apiKey, $apiSecret, $privateCdn, $cname): Cloudinary
+    private function _mapModeToCrop(string $mode, bool $upscale): string
     {
-        $config = [
-            'cloud' => [
-                'cloud_name' => App::parseEnv($cloudName),
-                'api_key' => App::parseEnv($apiKey),
-                'api_secret' => App::parseEnv($apiSecret),
-            ],
-            'url' => [
-                'analytics' => false,
-                'forceVersion' => false,
-            ],
-        ];
+        return match ($mode) {
+            'fit' => $upscale ? 'fit' : 'limit',
+            'letterbox' => $upscale ? 'pad' : 'lpad',
+            'stretch' => 'scale',
+            default => 'fill',
+        };
+    }
 
-        if ($privateCdn) {
-            $config['url']['private_cdn'] = true;
-        }
-
-        if (!empty($cname)) {
-            $config['url']['private_cdn'] = true;
-            $config['url']['secure_distribution'] = App::parseEnv($cname);
-        }
-
-        return new Cloudinary($config);
+    private function _mapPositionToGravity(string $position): string
+    {
+        return match ($position) {
+            'top-left' => 'north_west',
+            'top-center' => 'north',
+            'top-right' => 'north_east',
+            'center-left' => 'west',
+            'center-right' => 'east',
+            'bottom-left' => 'south_west',
+            'bottom-center' => 'south',
+            'bottom-right' => 'south_east',
+            default => 'center',
+        };
     }
 }

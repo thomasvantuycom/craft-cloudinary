@@ -4,6 +4,7 @@ namespace thomasvantuycom\craftcloudinary\fs;
 
 use Cloudinary\Cloudinary;
 use Craft;
+use craft\behaviors\EnvAttributeParserBehavior;
 use craft\flysystem\base\FlysystemFs;
 use craft\helpers\App;
 use League\Flysystem\FilesystemAdapter;
@@ -28,20 +29,30 @@ class CloudinaryFs extends FlysystemFs
         return Craft::t('cloudinary', 'Cloudinary');
     }
 
-    public function attributeLabels(): array
+    protected function defineBehaviors(): array
     {
-        return array_merge(parent::attributeLabels(), [
-            // ...
-        ]);
+        $behaviors = parent::defineBehaviors();
+        $behaviors['parser'] = [
+            'class' => EnvAttributeParserBehavior::class,
+            'attributes' => [
+                'cloudName',
+                'apiKey',
+                'apiSecret',
+                'cname',
+            ],
+        ];
+
+        return $behaviors;
     }
 
     protected function defineRules(): array
     {
-        return array_merge(parent::defineRules(), [
-            [['cloudName', 'apiKey', 'apiSecret'], 'required'],
-            [['privateCdn'], 'boolean'],
-            [['cname'], 'trim', 'chars' => ' /'],
-        ]);
+        $rules = parent::defineRules();
+        $rules[] = [['cloudName', 'apiKey', 'apiSecret'], 'required'];
+        $rules[] = [['privateCdn'], 'boolean'];
+        $rules[] = [['cname'], 'trim', 'chars' => ' /'];
+        
+        return $rules;
     }
 
     public function getSettingsHtml(): ?string
@@ -56,9 +67,9 @@ class CloudinaryFs extends FlysystemFs
         return false;
     }
 
-    protected function createAdapter(): FilesystemAdapter
+    public function getClient(): Cloudinary
     {
-        $client = new Cloudinary([
+        $config = [
             'cloud' => [
                 'cloud_name' => App::parseEnv($this->cloudName),
                 'api_key' => App::parseEnv($this->apiKey),
@@ -68,7 +79,23 @@ class CloudinaryFs extends FlysystemFs
                 'analytics' => false,
                 'forceVersion' => false,
             ],
-        ]);
+        ];
+
+        if ($this->privateCdn) {
+            $config['url']['private_cdn'] = true;
+        }
+
+        if (!empty($this->cname)) {
+            $config['url']['private_cdn'] = true;
+            $config['url']['secure_distribution'] = App::parseEnv($this->cname);
+        }
+
+        return new Cloudinary($config);
+    }
+
+    protected function createAdapter(): FilesystemAdapter
+    {
+        $client = $this->getClient();
 
         return new CloudinaryAdapter($client);
     }
