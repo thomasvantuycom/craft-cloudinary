@@ -167,7 +167,7 @@ class NotificationsController extends Controller
             ->from(Table::VOLUMEFOLDERS)
             ->where([
                 'volumeId' => $volumeId,
-                'path' => $folder === '' ? '' : $folder . '/',
+                'path' => $folder === '' ? NULL : $folder . '/',
             ])
             ->scalar();
 
