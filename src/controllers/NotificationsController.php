@@ -221,14 +221,14 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processDelete($volumeId, $baseFolder): Response
+    private function _processDelete($volumeId, $baseFolder, bool $hasDynamicFolders): Response
     {
         $resources = $this->request->getRequiredBodyParam('resources');
 
         foreach ($resources as $resource) {
             $resourceType = $resource['resource_type'];
             $publicId = $resource['public_id'];
-            $folder = $resource['folder'];
+            $folder = $hasDynamicFolders ? $resource['asset_folder'] : $resource['folder'];
 
             if (!empty($baseFolder)) {
                 if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
