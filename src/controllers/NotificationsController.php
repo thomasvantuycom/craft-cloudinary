@@ -98,18 +98,19 @@ class NotificationsController extends Controller
                 'volumeId' => $volumeId,
                 'path' => $path . '/',
             ]);
-        
+
         if ($existingFolderQuery->exists()) {
             return $this->asSuccess();
         }
-       
+
         // Get parent folder ID
+        // If the path is identical to the folder name, the folder is being created in the base folder
         $parentId = (new Query())
             ->select('id')
             ->from(Table::VOLUMEFOLDERS)
             ->where([
                 'volumeId' => $volumeId,
-                'path' => ($name === $path) ? '' : dirname($path) . '/',
+                'path' => ($name === $path) ? NULL : dirname($path) . '/',
             ])
             ->scalar();
 
@@ -166,7 +167,7 @@ class NotificationsController extends Controller
             ->from(Table::VOLUMEFOLDERS)
             ->where([
                 'volumeId' => $volumeId,
-                'path' => $folder === '' ? '' : $folder . '/',
+                'path' => $folder === '' ? NULL : $folder . '/',
             ])
             ->scalar();
 
@@ -174,7 +175,7 @@ class NotificationsController extends Controller
         $filename = basename($publicId);
 
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
-        
+
         if ($resourceType !== 'raw') {
             $format = $this->request->getRequiredBodyParam('format');
 
@@ -210,7 +211,7 @@ class NotificationsController extends Controller
             $asset->width = $this->request->getRequiredBodyParam('width');
             $asset->height = $this->request->getRequiredBodyParam('height');
         }
-        
+
         $asset->setScenario(Asset::SCENARIO_INDEX);
         Craft::$app->getElements()->saveElement($asset);
 
@@ -230,7 +231,7 @@ class NotificationsController extends Controller
                 if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
                     return $this->asSuccess();
                 }
-    
+
                 $folder = substr($folder, strlen($baseFolder) + 1);
             }
 
@@ -240,7 +241,7 @@ class NotificationsController extends Controller
             $assetQuery = Asset::find()
                 ->volumeId($volumeId)
                 ->folderPath($folderPath);
-            
+
             if ($resourceType === 'raw') {
                 $assetQuery->filename($filename);
             } else {
@@ -253,7 +254,7 @@ class NotificationsController extends Controller
             }
 
             $asset = $assetQuery->one();
-                
+
             if ($asset !== null) {
                 Craft::$app->getElements()->deleteElement($asset);
             }
@@ -268,7 +269,7 @@ class NotificationsController extends Controller
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
         $toPublicId = $this->request->getRequiredBodyParam('to_public_id');
         $folder = $this->request->getRequiredBodyParam('folder');
-        
+
         $fromFilename = basename($fromPublicId);
         $fromFolder = dirname($fromPublicId);
         $fromFolderPath = $fromFolder === '.' ? '' : $fromFolder . '/';
@@ -291,7 +292,7 @@ class NotificationsController extends Controller
         $assetQuery = Asset::find()
             ->volumeId($volumeId)
             ->folderPath($fromFolderPath);
-        
+
         if ($resourceType === 'raw') {
             $assetQuery->filename($fromFilename);
         } else {
@@ -309,7 +310,7 @@ class NotificationsController extends Controller
             if ($fromFolderPath !== $toFolderPath) {
                 $folderRecord = VolumeFolderRecord::findOne([
                     'volumeId' => $volumeId,
-                    'path' => $toFolderPath,
+                    'path' => $toFolderPath === '' ? NULL : $toFolderPath,
                 ]);
 
                 $asset->folderId = $folderRecord->id;
