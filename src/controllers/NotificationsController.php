@@ -147,16 +147,14 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processUpload($volumeId, $baseFolder, $hasDynamicFolders = false): Response
+    private function _processUpload($volumeId, $baseFolder, bool $hasDynamicFolders = false): Response
     {
         $publicId = $this->request->getRequiredBodyParam('public_id');
         $size = $this->request->getRequiredBodyParam('bytes');
-
-        if($hasDynamicFolders) {
-            $folder = $this->request->getRequiredBodyParam('asset_folder');
-        } else {
-            $folder = $this->request->getRequiredBodyParam('folder');
-        }
+        $folder = match ($hasDynamicFolders) {
+            true => $this->request->getRequiredBodyParam('asset_folder'),
+            false => $this->request->getRequiredBodyParam('folder'),
+        };
 
         if (!empty($baseFolder)) {
             if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
@@ -268,17 +266,15 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processRename($volumeId, $baseFolder, $hasDynamicFolders = false): Response
+    private function _processRename($volumeId, $baseFolder, bool $hasDynamicFolders = false): Response
     {
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
         $toPublicId = $this->request->getRequiredBodyParam('to_public_id');
-
-        if($hasDynamicFolders) {
-            $folder = $this->request->getRequiredBodyParam('asset_folder');
-        } else {
-            $folder = $this->request->getRequiredBodyParam('folder');
-        }
+        $folder = match ($hasDynamicFolders) {
+            true => $this->request->getRequiredBodyParam('asset_folder'),
+            false => $this->request->getRequiredBodyParam('folder'),
+        };
 
         $fromFilename = basename($fromPublicId);
         $fromFolder = dirname($fromPublicId);
