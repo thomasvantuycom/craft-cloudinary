@@ -68,7 +68,7 @@ class NotificationsController extends Controller
             case 'delete_folder':
                 return $this->_processDeleteFolder($volumeId, $baseFolder);
             case 'upload':
-                return $this->_processUpload($volumeId, $baseFolder);
+                return $this->_processUpload($volumeId, $baseFolder, $fs);
             case 'delete':
                 return $this->_processDelete($volumeId, $baseFolder);
             case 'rename':
@@ -98,11 +98,11 @@ class NotificationsController extends Controller
                 'volumeId' => $volumeId,
                 'path' => $path . '/',
             ]);
-        
+
         if ($existingFolderQuery->exists()) {
             return $this->asSuccess();
         }
-       
+
         // Get parent folder ID
         $parentId = (new Query())
             ->select('id')
@@ -146,11 +146,18 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processUpload($volumeId, $baseFolder): Response
+    private function _processUpload($volumeId, $baseFolder, $fs): Response
     {
+        $hasDynamicFolders = $fs->dynamicFolders;
+
         $publicId = $this->request->getRequiredBodyParam('public_id');
-        $folder = $this->request->getRequiredBodyParam('folder');
         $size = $this->request->getRequiredBodyParam('bytes');
+
+        if($hasDynamicFolders) {
+            $folder = $this->request->getRequiredBodyParam('asset_folder');
+        } else {
+            $folder = $this->request->getRequiredBodyParam('folder');
+        }
 
         if (!empty($baseFolder)) {
             if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
@@ -174,7 +181,7 @@ class NotificationsController extends Controller
         $filename = basename($publicId);
 
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
-        
+
         if ($resourceType !== 'raw') {
             $format = $this->request->getRequiredBodyParam('format');
 
@@ -210,7 +217,7 @@ class NotificationsController extends Controller
             $asset->width = $this->request->getRequiredBodyParam('width');
             $asset->height = $this->request->getRequiredBodyParam('height');
         }
-        
+
         $asset->setScenario(Asset::SCENARIO_INDEX);
         Craft::$app->getElements()->saveElement($asset);
 
@@ -230,7 +237,7 @@ class NotificationsController extends Controller
                 if ($folder !== $baseFolder && !str_starts_with($folder, $baseFolder . '/')) {
                     return $this->asSuccess();
                 }
-    
+
                 $folder = substr($folder, strlen($baseFolder) + 1);
             }
 
@@ -240,7 +247,7 @@ class NotificationsController extends Controller
             $assetQuery = Asset::find()
                 ->volumeId($volumeId)
                 ->folderPath($folderPath);
-            
+
             if ($resourceType === 'raw') {
                 $assetQuery->filename($filename);
             } else {
@@ -253,7 +260,7 @@ class NotificationsController extends Controller
             }
 
             $asset = $assetQuery->one();
-                
+
             if ($asset !== null) {
                 Craft::$app->getElements()->deleteElement($asset);
             }
@@ -268,7 +275,7 @@ class NotificationsController extends Controller
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
         $toPublicId = $this->request->getRequiredBodyParam('to_public_id');
         $folder = $this->request->getRequiredBodyParam('folder');
-        
+
         $fromFilename = basename($fromPublicId);
         $fromFolder = dirname($fromPublicId);
         $fromFolderPath = $fromFolder === '.' ? '' : $fromFolder . '/';
@@ -291,7 +298,7 @@ class NotificationsController extends Controller
         $assetQuery = Asset::find()
             ->volumeId($volumeId)
             ->folderPath($fromFolderPath);
-        
+
         if ($resourceType === 'raw') {
             $assetQuery->filename($fromFilename);
         } else {
