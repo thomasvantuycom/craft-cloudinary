@@ -310,7 +310,7 @@ class NotificationsController extends Controller
             if ($fromFolderPath !== $toFolderPath) {
                 $folderRecord = VolumeFolderRecord::findOne([
                     'volumeId' => $volumeId,
-                    'path' => $toFolderPath,
+                    'path' => $toFolderPath === '' ? NULL : $toFolderPath,
                 ]);
 
                 $asset->folderId = $folderRecord->id;
