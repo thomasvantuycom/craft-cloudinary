@@ -61,6 +61,7 @@ class NotificationsController extends Controller
         // Process notification
         $notificationType = $this->request->getRequiredBodyParam('notification_type');
         $baseFolder = App::parseEnv($fs->baseFolder);
+        $hasDynamicFolders = $fs->hasDynamicFolders;
 
         switch ($notificationType) {
             case 'create_folder':
@@ -68,11 +69,11 @@ class NotificationsController extends Controller
             case 'delete_folder':
                 return $this->_processDeleteFolder($volumeId, $baseFolder);
             case 'upload':
-                return $this->_processUpload($volumeId, $baseFolder, $fs);
+                return $this->_processUpload($volumeId, $baseFolder, $hasDynamicFolders);
             case 'delete':
                 return $this->_processDelete($volumeId, $baseFolder);
             case 'rename':
-                return $this->_processRename($volumeId, $baseFolder);
+                return $this->_processRename($volumeId, $baseFolder, $hasDynamicFolders);
             default:
                 return $this->asSuccess();
         }
@@ -146,10 +147,8 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processUpload($volumeId, $baseFolder, $fs): Response
+    private function _processUpload($volumeId, $baseFolder, $hasDynamicFolders = false): Response
     {
-        $hasDynamicFolders = $fs->dynamicFolders;
-
         $publicId = $this->request->getRequiredBodyParam('public_id');
         $size = $this->request->getRequiredBodyParam('bytes');
 
@@ -269,12 +268,17 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processRename($volumeId, $baseFolder): Response
+    private function _processRename($volumeId, $baseFolder, $hasDynamicFolders = false): Response
     {
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
         $toPublicId = $this->request->getRequiredBodyParam('to_public_id');
-        $folder = $this->request->getRequiredBodyParam('folder');
+
+        if($hasDynamicFolders) {
+            $folder = $this->request->getRequiredBodyParam('asset_folder');
+        } else {
+            $folder = $this->request->getRequiredBodyParam('folder');
+        }
 
         $fromFilename = basename($fromPublicId);
         $fromFolder = dirname($fromPublicId);
