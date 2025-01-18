@@ -31,6 +31,14 @@
 }) }}
 
 {{ forms.lightswitchField({
+    label: "Dynamic Folders mode"|t('cloudinary'),
+    instructions: "Check the details of your [product environment](https://console.cloudinary.com/settings/product-environments) to verify whether Dynamic Folders mode is enabled."|t('cloudinary'),
+    id: 'dynamicFolders',
+    name: 'dynamicFolders',
+    on: fs.dynamicFolders,
+}) }}
+
+{{ forms.lightswitchField({
     label: "Private CDN"|t('cloudinary'),
     instructions: "Toggle if you use a private CDN to serve assets."|t('cloudinary'),
     id: 'privateCdn',
