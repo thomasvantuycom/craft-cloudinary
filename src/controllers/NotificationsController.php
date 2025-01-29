@@ -61,6 +61,7 @@ class NotificationsController extends Controller
         // Process notification
         $notificationType = $this->request->getRequiredBodyParam('notification_type');
         $subpath = $volume->getSubpath(false);
+        $hasDynamicFolders = $fs->dynamicFolders;
 
         switch ($notificationType) {
             case 'create_folder':
@@ -68,11 +69,11 @@ class NotificationsController extends Controller
             case 'delete_folder':
                 return $this->_processDeleteFolder($volumeId, $subpath);
             case 'upload':
-                return $this->_processUpload($volumeId, $subpath);
+                return $this->_processUpload($volumeId, $subpath, $hasDynamicFolders);
             case 'delete':
-                return $this->_processDelete($volumeId, $subpath);
+                return $this->_processDelete($volumeId, $subpath, $hasDynamicFolders);
             case 'rename':
-                return $this->_processRename($volumeId, $subpath);
+                return $this->_processRename($volumeId, $subpath, $hasDynamicFolders);
             default:
                 return $this->asSuccess();
         }
@@ -146,10 +147,12 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processUpload($volumeId, $subpath): Response
+    private function _processUpload($volumeId, $subpath, $hasDynamicFolders): Response
     {
         $publicId = $this->request->getRequiredBodyParam('public_id');
-        $folder = $this->request->getRequiredBodyParam('folder');
+        $folder = $hasDynamicFolders
+            ? $this->request->getRequiredBodyParam('asset_folder')
+            : $this->request->getRequiredBodyParam('folder');
         $size = $this->request->getRequiredBodyParam('bytes');
 
         if (!empty($subpath)) {
@@ -217,14 +220,16 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processDelete($volumeId, $subpath): Response
+    private function _processDelete($volumeId, $subpath, $hasDynamicFolders): Response
     {
         $resources = $this->request->getRequiredBodyParam('resources');
 
         foreach ($resources as $resource) {
             $resourceType = $resource['resource_type'];
             $publicId = $resource['public_id'];
-            $folder = $resource['folder'];
+            $folder = $hasDynamicFolders
+                ? $resource['asset_folder']
+                : $resource['folder'];
 
             if (!empty($subpath)) {
                 if ($folder !== $subpath && !str_starts_with($folder, $subpath . '/')) {
@@ -262,16 +267,18 @@ class NotificationsController extends Controller
         return $this->asSuccess();
     }
 
-    private function _processRename($volumeId, $subpath): Response
+    private function _processRename($volumeId, $subpath, $hasDynamicFolders): Response
     {
         $resourceType = $this->request->getRequiredBodyParam('resource_type');
         $fromPublicId = $this->request->getRequiredBodyParam('from_public_id');
         $toPublicId = $this->request->getRequiredBodyParam('to_public_id');
-        $folder = $this->request->getRequiredBodyParam('folder');
+        $folder = $hasDynamicFolders
+            ? $this->request->getRequiredBodyParam('asset_folder')
+            : $this->request->getRequiredBodyParam('folder');
         
         $fromFilename = basename($fromPublicId);
-        $fromFolder = dirname($fromPublicId);
-        $fromFolderPath = $fromFolder === '.' ? '' : $fromFolder . '/';
+        $fromFolder = $hasDynamicFolders ? $folder : dirname($fromPublicId);
+        $fromFolderPath = in_array($fromFolder, ['.', '']) ? '' : $fromFolder . '/';
         $toFilename = basename($toPublicId);
         $toFolderPath = $folder === '' ? '' : $folder . '/';
 
