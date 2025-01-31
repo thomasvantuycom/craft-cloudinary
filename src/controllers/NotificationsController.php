@@ -10,6 +10,7 @@ use craft\db\Table;
 use craft\elements\Asset;
 use craft\helpers\App;
 use craft\helpers\Assets;
+use craft\models\VolumeFolder;
 use craft\records\VolumeFolder as VolumeFolderRecord;
 use craft\web\Controller;
 use InvalidArgumentException;
@@ -66,6 +67,8 @@ class NotificationsController extends Controller
         switch ($notificationType) {
             case 'create_folder':
                 return $this->_processCreateFolder($volumeId, $subpath);
+            case 'move_or_rename_asset_folder':
+                return $this->_processMoveOrRenameAssetFolder($volumeId, $subpath);
             case 'delete_folder':
                 return $this->_processDeleteFolder($volumeId, $subpath);
             case 'upload':
@@ -122,6 +125,61 @@ class NotificationsController extends Controller
             'path' => $path . '/',
         ]);
         $record->save();
+
+        return $this->asSuccess();
+    }
+
+    private function _processMoveOrRenameAssetFolder($volumeId, $subpath): Response
+    {
+        $fromPath = $this->request->getRequiredBodyParam('from_path');
+        $toPath = $this->request->getRequiredBodyParam('to_path');
+
+        if (basename($fromPath) !== basename($toPath)) {
+            // Rename
+            if (!empty($subpath)) {
+                if (!str_starts_with($fromPath, $subpath . '/')) {
+                    return $this->asSuccess();
+                }
+    
+                $fromPath = substr($fromPath, strlen($subpath) + 1);
+                $toPath = substr($fromPath, strlen($subpath) + 1);
+            }
+
+            // Get folder and descendants
+            $folderQueryResult = (new Query())
+                ->select(['id', 'parentId', 'volumeId', 'name', 'path', 'uid'])
+                ->from(Table::VOLUMEFOLDERS)
+                ->where([
+                    'volumeId' => $volumeId,
+                    'path' => $fromPath === '' ? '' : $fromPath . '/',
+                ])
+                ->one();
+            
+            if (!$folderQueryResult) {
+                return $this->asSuccess();
+            }
+
+            $assetsService = Craft::$app->getAssets();
+
+            $folder = new VolumeFolder($folderQueryResult);
+            $descendantFolders = $assetsService->getAllDescendantFolders($folder);
+
+            // Rename folder and update descendants
+            $newName = basename($toPath);
+            $parentFolderPath = dirname($folder->path);
+            $newFolderPath = (($parentFolderPath && $parentFolderPath !== '.') ? $parentFolderPath . '/' : '') . $newName . '/';
+
+            foreach ($descendantFolders as $descendantFolder) {
+                $descendantFolder->path = preg_replace('#^' . $folder->path . '#', $newFolderPath, $descendantFolder->path);
+                $assetsService->storeFolderRecord($descendantFolder);
+            }
+
+            $folder->name = $newName;
+            $folder->path = $newFolderPath;
+            $assetsService->storeFolderRecord($folder);
+        } else {
+            // Move
+        }
 
         return $this->asSuccess();
     }
