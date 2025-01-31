@@ -134,52 +134,66 @@ class NotificationsController extends Controller
         $fromPath = $this->request->getRequiredBodyParam('from_path');
         $toPath = $this->request->getRequiredBodyParam('to_path');
 
-        if (basename($fromPath) !== basename($toPath)) {
-            // Rename
-            if (!empty($subpath)) {
-                if (!str_starts_with($fromPath, $subpath . '/')) {
-                    return $this->asSuccess();
-                }
-    
-                $fromPath = substr($fromPath, strlen($subpath) + 1);
-                $toPath = substr($fromPath, strlen($subpath) + 1);
-            }
-
-            // Get folder and descendants
-            $folderQueryResult = (new Query())
-                ->select(['id', 'parentId', 'volumeId', 'name', 'path', 'uid'])
-                ->from(Table::VOLUMEFOLDERS)
-                ->where([
-                    'volumeId' => $volumeId,
-                    'path' => $fromPath === '' ? '' : $fromPath . '/',
-                ])
-                ->one();
-            
-            if (!$folderQueryResult) {
+        if (!empty($subpath)) {
+            if (!str_starts_with($fromPath, $subpath . '/')) {
                 return $this->asSuccess();
             }
 
-            $assetsService = Craft::$app->getAssets();
-
-            $folder = new VolumeFolder($folderQueryResult);
-            $descendantFolders = $assetsService->getAllDescendantFolders($folder);
-
-            // Rename folder and update descendants
-            $newName = basename($toPath);
-            $parentFolderPath = dirname($folder->path);
-            $newFolderPath = (($parentFolderPath && $parentFolderPath !== '.') ? $parentFolderPath . '/' : '') . $newName . '/';
-
-            foreach ($descendantFolders as $descendantFolder) {
-                $descendantFolder->path = preg_replace('#^' . $folder->path . '#', $newFolderPath, $descendantFolder->path);
-                $assetsService->storeFolderRecord($descendantFolder);
+            if (!str_starts_with($toPath, $subpath . '/')) {
+                return $this->asSuccess();
             }
 
-            $folder->name = $newName;
-            $folder->path = $newFolderPath;
-            $assetsService->storeFolderRecord($folder);
-        } else {
-            // Move
+            $fromPath = substr($fromPath, strlen($subpath) + 1);
+            $toPath = substr($fromPath, strlen($subpath) + 1);
         }
+
+        $fromName = basename($fromPath);
+        $toName = basename($toPath);
+
+        $fromParentPath = $fromName === $fromPath ? '' : dirname($fromPath) . '/';
+        $toParentPath = $toName === $toPath ? '' : dirname($toPath) . '/';
+
+        $folderQueryResult = (new Query())
+            ->select(['id', 'parentId', 'volumeId', 'name', 'path', 'uid'])
+            ->from(Table::VOLUMEFOLDERS)
+            ->where([
+                'volumeId' => $volumeId,
+                'path' => $fromPath === '' ? '' : $fromPath . '/',
+            ])
+            ->one();
+            
+        if (!$folderQueryResult) {
+            return $this->asSuccess();
+        }
+
+        $assetsService = Craft::$app->getAssets();
+        
+        $folder = new VolumeFolder($folderQueryResult);
+        $descendantFolders = $assetsService->getAllDescendantFolders($folder);
+
+        // Rename folder and update descendants
+        foreach ($descendantFolders as $descendantFolder) {
+            $descendantFolder->path = preg_replace('#^' . $fromPath . '/' . '#', $toPath . '/', $descendantFolder->path);
+            $assetsService->storeFolderRecord($descendantFolder);
+        }
+
+        $folder->name = $toName;
+        $folder->path = $toPath . '/';
+
+        if ($fromParentPath !== $toParentPath) {
+            $parentId = (new Query())
+                ->select('id')
+                ->from(Table::VOLUMEFOLDERS)
+                ->where([
+                    'volumeId' => $volumeId,
+                    'path' => $toParentPath,
+                ])
+                ->scalar();
+            
+            $folder->parentId = $parentId;
+        }
+
+        $assetsService->storeFolderRecord($folder);
 
         return $this->asSuccess();
     }
