@@ -18,6 +18,8 @@ class CloudinaryFs extends FlysystemFs
 
     public string $apiSecret = '';
 
+    public bool $dynamicFolders = false;
+
     public bool $privateCdn = false;
 
     public string $cname = '';
@@ -97,7 +99,7 @@ class CloudinaryFs extends FlysystemFs
     {
         $client = $this->getClient();
 
-        return new CloudinaryAdapter($client);
+        return new CloudinaryAdapter($client, dynamicFolders: $this->dynamicFolders);
     }
 
     protected function invalidateCdnPath(string $path): bool

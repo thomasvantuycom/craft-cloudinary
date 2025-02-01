@@ -70,9 +70,19 @@ class CloudinaryUrlBehavior extends Behavior
         $transformFs = $volume->getTransformFs();
 
         $hasCloudinaryFs = $fs instanceof CloudinaryFs;
+        $hasDynamicFolders = $hasCloudinaryFs && $fs->dynamicFolders;
         $fsWithConfig = $hasCloudinaryFs ? $fs : $transformFs;
 
-        $publicId = $hasCloudinaryFs ? $volume->getSubPath() . $asset->getPath() : $asset->getUrl();
+        if ($hasCloudinaryFs) {
+            $publicId = $volume->getSubPath() . $asset->getPath();
+
+            if ($hasDynamicFolders) {
+                $publicId = basename($publicId);
+            }
+        } else {
+            $publicId = $asset->getUrl();
+        }
+        
         $resourceType = $this->_getResourceType();
     
         /**
