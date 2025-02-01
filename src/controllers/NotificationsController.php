@@ -77,6 +77,8 @@ class NotificationsController extends Controller
                 return $this->_processDelete($volumeId, $subpath, $hasDynamicFolders);
             case 'rename':
                 return $this->_processRename($volumeId, $subpath, $hasDynamicFolders);
+            case 'move':
+                return $this->_processMove($volumeId, $subpath);
             default:
                 return $this->asSuccess();
         }
@@ -305,7 +307,7 @@ class NotificationsController extends Controller
 
             if (!empty($subpath)) {
                 if ($folder !== $subpath && !str_starts_with($folder, $subpath . '/')) {
-                    return $this->asSuccess();
+                    continue;
                 }
     
                 $folder = substr($folder, strlen($subpath) + 1);
@@ -402,6 +404,73 @@ class NotificationsController extends Controller
                     $asset->filename = "$toFilename.$extension";
                 }
             }
+
+            Craft::$app->getElements()->saveElement($asset);
+        }
+
+        return $this->asSuccess();
+    }
+
+    private function _processMove($volumeId, $subpath): Response
+    {
+        $resources = $this->request->getRequiredBodyParam('resources');
+
+        foreach ($resources as $publicId => $resource) {
+            $resourceType = $resource['resource_type'];
+            $fromFolder = $resource['from_asset_folder'];
+            $toFolder = $resource['to_asset_folder'];
+
+            if (!empty($subpath)) {
+                if ($fromFolder !== $subpath && !str_starts_with($fromFolder, $subpath . '/')) {
+                    continue;
+                }
+
+                if ($toFolder !== $subpath && !str_starts_with($toFolder, $subpath . '/')) {
+                    continue;
+                }
+    
+                $fromFolder = substr($fromFolder, strlen($subpath) + 1);
+                $toFolder = substr($toFolder, strlen($subpath) + 1);
+            }
+
+            $fromFolderPath = $fromFolder === '' ? '' : $fromFolder . '/';
+            $toFolderPath = $toFolder === '' ? '' : $toFolder . '/';
+
+            $assetQuery = Asset::find()
+                ->volumeId($volumeId)
+                ->folderPath($fromFolderPath);
+            
+            if ($resourceType === 'raw') {
+                $assetQuery->filename($publicId);
+            } else {
+                $assetQuery->filename("$publicId.*");
+                if ($resourceType === 'image') {
+                    $assetQuery->kind('image');
+                } else {
+                    $assetQuery->kind(['video', 'audio']);
+                }
+            }
+
+            $asset = $assetQuery->one();
+                
+            if ($asset === null) {
+                continue;
+            }
+
+            $folderId = (new Query())
+                ->select('id')
+                ->from(Table::VOLUMEFOLDERS)
+                ->where([
+                    'volumeId' => $volumeId,
+                    'path' => $toFolderPath,
+                ])
+                ->scalar();
+            
+            if (!$folderId) {
+                continue;
+            }
+
+            $asset->folderId = $folderId;
 
             Craft::$app->getElements()->saveElement($asset);
         }
