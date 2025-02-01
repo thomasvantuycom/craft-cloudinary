@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 2.2.0 - 2025-02-01
+
+### Added
+
+- Support dynamic folders mode
+
 ## 2.1.0 - 2024-06-03
 
 ### Added
