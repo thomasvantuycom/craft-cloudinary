@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a531fff9fdab49bc26dd7bb03d74e832",
+    "content-hash": "5c5e3b6e153fdddca027dbc4ecfc9d87",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -6225,16 +6225,16 @@
         },
         {
             "name": "thomasvantuycom/flysystem-cloudinary",
-            "version": "v2.0.1",
+            "version": "v2.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thomasvantuycom/flysystem-cloudinary.git",
-                "reference": "2e750c113a99d2c0ed213a8f3fb4a083d6932786"
+                "reference": "254405aeb3da9ef178e6839038a7a9cbb5801fb9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thomasvantuycom/flysystem-cloudinary/zipball/2e750c113a99d2c0ed213a8f3fb4a083d6932786",
-                "reference": "2e750c113a99d2c0ed213a8f3fb4a083d6932786",
+                "url": "https://api.github.com/repos/thomasvantuycom/flysystem-cloudinary/zipball/254405aeb3da9ef178e6839038a7a9cbb5801fb9",
+                "reference": "254405aeb3da9ef178e6839038a7a9cbb5801fb9",
                 "shasum": ""
             },
             "require": {
@@ -6288,7 +6288,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-29T15:12:54+00:00"
+            "time": "2025-03-20T17:52:06+00:00"
         },
         {
             "name": "twig/twig",
