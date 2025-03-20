@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 2.2.1 - 2025-03-20
+
+### Fixed
+
+- Prevent error when deleting a non-existent folder.
+
 ## 2.2.0 - 2025-02-01
 
 ### Added
