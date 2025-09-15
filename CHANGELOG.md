@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 2.2.2 - 2025-09-15
+
+### Fixed
+
+- Correctly detect native image transforms.
+
 ## 2.2.1 - 2025-03-20
 
 ### Fixed
