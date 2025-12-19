@@ -1,5 +1,11 @@
 # Release Notes for Cloudinary
 
+## 2.2.3 - 2025-12-19
+
+### Fixed
+
+- Assume Cloudinary assets have URLs.
+
 ## 2.2.2 - 2025-09-15
 
 ### Fixed
