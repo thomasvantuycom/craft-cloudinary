@@ -24,6 +24,8 @@ class CloudinaryFs extends FlysystemFs
 
     public string $cname = '';
 
+    public bool $hasUrls = true;
+
     protected bool $foldersHaveTrailingSlashes = false;
 
     public static function displayName(): string
